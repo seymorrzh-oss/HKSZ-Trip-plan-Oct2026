@@ -1,1056 +1,244 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="zh-CN">
 <head>
-  <meta charset="UTF-8">
-
-  <meta
-    name="viewport"
-    content="width=device-width, initial-scale=1.0, viewport-fit=cover"
-  >
-
-  <meta
-    name="description"
-    content="深圳 × 香港 · 2026 国庆建筑旅行"
-  >
-
-  <meta name="theme-color" content="#f4efe7">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#f5f1ea">
 
   <title>深圳 × 香港 · 2026 国庆建筑旅行</title>
 
-  <link rel="stylesheet" href="style.css?v=2.4">
+  <link
+    rel="stylesheet"
+    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+  >
+
+  <link rel="stylesheet" href="style.css?v=2.4.1">
 </head>
 
 <body>
 
-  <div class="app-shell">
+<div class="app">
 
-    <!-- =========================
-         HEADER
-    ========================== -->
+  <header class="hero">
+    <div>
+      <p class="eyebrow">SOLO ARCHITECTURE TRIP · 2026</p>
+      <h1>深圳 <span>×</span> 香港</h1>
+      <p class="subtitle">10.02 — 10.07 · 6 DAYS / 5 NIGHTS</p>
+    </div>
 
-    <header class="trip-header">
+    <div class="hero-badge">
+      <small>OCT</small>
+      <strong>02—07</strong>
+      <span>2026</span>
+    </div>
+  </header>
 
-      <div class="trip-header-top">
 
+  <div class="chips">
+    <span>✈️ 青岛 ⇄ 深圳</span>
+    <span>🏨 南山科技园</span>
+    <span>🏛 建筑旅行</span>
+    <span class="green">● SOLO TRIP</span>
+  </div>
+
+
+  <section class="now-card">
+    <div class="now-head">
+      <div>
+        <p class="eyebrow">此刻关注 · NOW</p>
+        <h2 id="nowTitle">正在读取下一行程</h2>
+      </div>
+
+      <span id="nowBadge" class="now-badge">LOADING</span>
+    </div>
+
+    <p id="nowDetail" class="muted">Asia/Shanghai · UTC+8</p>
+
+    <div class="countdown">
+      <div><strong id="countdownDays">00</strong><span>天</span></div>
+      <div><strong id="countdownHours">00</strong><span>时</span></div>
+      <div><strong id="countdownMinutes">00</strong><span>分</span></div>
+      <div><strong id="countdownSeconds">00</strong><span>秒</span></div>
+    </div>
+  </section>
+
+
+  <nav class="tabs">
+    <button class="tab active" data-tab="overview">总览</button>
+    <button class="tab" data-tab="map">旅迹</button>
+    <button class="tab" data-tab="days">每日行程</button>
+    <button class="tab" data-tab="todo">待办</button>
+  </nav>
+
+
+  <!-- OVERVIEW -->
+  <main id="overview" class="panel active">
+
+    <section class="card">
+      <div class="section-title">
         <div>
-          <p class="eyebrow">SOLO ARCHITECTURE TRIP</p>
-
-          <h1>
-            深圳
-            <span class="title-cross">×</span>
-            香港
-          </h1>
-
-          <p class="trip-subtitle">
-            2026 国庆建筑旅行
-          </p>
+          <p class="eyebrow">TRIP MAP</p>
+          <h2>Visual Route</h2>
         </div>
 
-        <div class="trip-date-badge">
-          <span>OCT</span>
-          <strong>02–07</strong>
-          <small>2026</small>
-        </div>
-
+        <span class="soft-badge">REAL MAP</span>
       </div>
 
-
-      <div class="trip-meta-row">
-
-        <span class="meta-chip">
-          6天5晚
-        </span>
-
-        <span class="meta-chip">
-          深圳 + 香港
-        </span>
-
-        <span class="meta-chip">
-          建筑 · 城市 · 摄影
-        </span>
-
-        <span class="meta-chip meta-chip-green">
-          SOLO TRIP
-        </span>
-
-      </div>
-
-    </header>
-
-
-
-    <!-- =========================
-         NOW CARD
-    ========================== -->
-
-    <section
-      class="now-card"
-      aria-labelledby="nowCardTitle"
-    >
-
-      <div class="section-heading-row">
-
-        <div>
-          <p class="section-kicker">
-            此刻关注 · NOW
-          </p>
-
-          <h2 id="nowCardTitle">
-            下一项行程
-          </h2>
-        </div>
-
-        <div
-          id="nowStatusBadge"
-          class="status-badge"
-        >
-          准备中
-        </div>
-
-      </div>
-
-
-      <div class="now-main">
-
-        <div class="now-event">
-
-          <p
-            id="nowEventDate"
-            class="now-event-date"
-          >
-            2026.10.02 · GMT+8
-          </p>
-
-          <h3 id="nowEventTitle">
-            CZ5844 · 青岛 → 深圳
-          </h3>
-
-          <p id="nowEventDetail">
-            16:15 青岛胶东 T1 → 19:40 深圳宝安 T3
-          </p>
-
-        </div>
-
-
-        <div class="countdown-wrap">
-
-          <p class="countdown-label">
-            距离下一事件
-          </p>
-
-          <div
-            class="countdown-grid"
-            aria-live="polite"
-          >
-
-            <div class="countdown-unit">
-              <strong id="countdownDays">--</strong>
-              <span>天</span>
-            </div>
-
-            <div class="countdown-unit">
-              <strong id="countdownHours">--</strong>
-              <span>时</span>
-            </div>
-
-            <div class="countdown-unit">
-              <strong id="countdownMinutes">--</strong>
-              <span>分</span>
-            </div>
-
-            <div class="countdown-unit">
-              <strong id="countdownSeconds">--</strong>
-              <span>秒</span>
-            </div>
-
-          </div>
-
-        </div>
-
-      </div>
-
-
-      <div class="now-footer">
-
-        <div>
-          <span class="tiny-label">
-            TIMEZONE
-          </span>
-
-          <strong>
-            Asia/Shanghai · UTC+8
-          </strong>
-        </div>
-
-        <div>
-          <span class="tiny-label">
-            NEXT
-          </span>
-
-          <strong id="nowNextShort">
-            深圳
-          </strong>
-        </div>
-
-      </div>
-
-    </section>
-
-
-
-    <!-- =========================
-         MAIN NAVIGATION
-    ========================== -->
-
-    <nav
-      class="main-tabs"
-      aria-label="旅行页面"
-    >
-
-      <button
-        type="button"
-        class="tab-button active"
-        data-tab="overview"
-      >
-        总览
-      </button>
-
-      <button
-        type="button"
-        class="tab-button"
-        data-tab="map"
-      >
-        地图
-      </button>
-
-      <button
-        type="button"
-        class="tab-button"
-        data-tab="days"
-      >
-        每日行程
-      </button>
-
-      <button
-        type="button"
-        class="tab-button"
-        data-tab="todo"
-      >
-        待办
-      </button>
-
-    </nav>
-
-
-
-    <main>
-
-      <!-- =====================================================
-           OVERVIEW
-      ====================================================== -->
-
-      <section
-        id="overview"
-        class="tab-panel active"
-      >
-
-        <!-- Visual route map -->
-
-        <article class="content-card route-overview-card">
-
-          <div class="section-heading-row">
-
-            <div>
-              <p class="section-kicker">
-                VISUAL ROUTE
-              </p>
-
-              <h2>
-                旅行路线总览
-              </h2>
-
-              <p class="section-description">
-                按每天的主要活动区域绘制的简化路线。
-                用来快速理解每天去哪，不代替真实地图导航。
-              </p>
-            </div>
-
-            <span class="schematic-badge">
-              SCHEMATIC
-            </span>
-
-          </div>
-
-
-          <div class="route-legend">
-
-            <span>
-              <i class="legend-line day2-color"></i>
-              10/3 深超总
-            </span>
-
-            <span>
-              <i class="legend-line day3-color"></i>
-              10/4 香港
-            </span>
-
-            <span>
-              <i class="legend-line day4-color"></i>
-              10/5 福田
-            </span>
-
-            <span>
-              <i class="legend-line day5-color"></i>
-              10/6 南山
-            </span>
-
-          </div>
-
-
-          <div class="visual-map-shell">
-
-            <svg
-              id="overviewRouteSvg"
-              class="visual-route-map"
-              viewBox="0 0 760 520"
-              role="img"
-              aria-labelledby="overviewMapTitle overviewMapDescription"
-            >
-
-              <title id="overviewMapTitle">
-                深圳香港旅行简化路线图
-              </title>
-
-              <desc id="overviewMapDescription">
-                此图为旅行路线示意图，不按真实比例绘制。
-              </desc>
-
-
-              <!-- background geography hints -->
-
-              <path
-                class="map-water"
-                d="M0,330 C150,285 240,350 350,325 C470,295 575,315 760,245 L760,520 L0,520 Z"
-              ></path>
-
-
-              <path
-                class="map-land-outline"
-                d="M40,65
-                   C160,28 310,45 405,86
-                   C505,128 600,98 700,145
-                   L675,280
-                   C570,290 485,275 390,305
-                   C285,335 185,285 72,310
-                   Z"
-              ></path>
-
-
-              <!-- hotel anchor -->
-
-              <g class="overview-map-node hotel-node">
-                <circle cx="260" cy="168" r="14"></circle>
-                <text x="260" y="173" text-anchor="middle">
-                  H
-                </text>
-                <text
-                  class="map-label"
-                  x="260"
-                  y="145"
-                  text-anchor="middle"
-                >
-                  南山住宿
-                </text>
-              </g>
-
-
-              <!-- Day 2 route -->
-
-              <path
-                class="overview-route route-day2"
-                d="M260,168
-                   C295,190 315,225 350,238
-                   C390,252 430,225 470,242
-                   C510,260 520,300 560,310"
-              ></path>
-
-
-              <g class="overview-map-node day2-node">
-                <circle cx="350" cy="238" r="8"></circle>
-                <text class="map-label" x="350" y="218" text-anchor="middle">
-                  红树湾南
-                </text>
-              </g>
-
-              <g class="overview-map-node day2-node">
-                <circle cx="470" cy="242" r="8"></circle>
-                <text class="map-label" x="470" y="222" text-anchor="middle">
-                  深超总
-                </text>
-              </g>
-
-              <g class="overview-map-node day2-node">
-                <circle cx="560" cy="310" r="8"></circle>
-                <text class="map-label" x="560" y="338" text-anchor="middle">
-                  深圳湾
-                </text>
-              </g>
-
-
-              <!-- Day 4 / Futian route -->
-
-              <path
-                class="overview-route route-day4"
-                d="M260,168
-                   C335,140 410,120 485,128
-                   C545,135 585,158 620,180"
-              ></path>
-
-
-              <g class="overview-map-node day4-node">
-                <circle cx="485" cy="128" r="8"></circle>
-                <text class="map-label" x="485" y="106" text-anchor="middle">
-                  福田 CBD
-                </text>
-              </g>
-
-              <g class="overview-map-node day4-node">
-                <circle cx="620" cy="180" r="8"></circle>
-                <text class="map-label" x="620" y="160" text-anchor="middle">
-                  华强北
-                </text>
-              </g>
-
-
-              <!-- Day 5 / Shekou -->
-
-              <path
-                class="overview-route route-day5"
-                d="M260,168
-                   C210,190 170,225 130,255
-                   C105,275 95,305 105,330"
-              ></path>
-
-
-              <g class="overview-map-node day5-node">
-                <circle cx="130" cy="255" r="8"></circle>
-                <text class="map-label" x="130" y="235" text-anchor="middle">
-                  太子湾
-                </text>
-              </g>
-
-              <g class="overview-map-node day5-node">
-                <circle cx="105" cy="330" r="8"></circle>
-                <text class="map-label" x="105" y="357" text-anchor="middle">
-                  蛇口
-                </text>
-              </g>
-
-
-              <!-- HK route -->
-
-              <path
-                class="overview-route route-day3 route-dashed"
-                d="M485,128
-                   C535,245 610,335 655,390
-                   C680,420 670,450 620,462"
-              ></path>
-
-
-              <g class="overview-map-node day3-node">
-                <circle cx="655" cy="390" r="8"></circle>
-                <text class="map-label" x="655" y="370" text-anchor="middle">
-                  西九龙
-                </text>
-              </g>
-
-              <g class="overview-map-node day3-node">
-                <circle cx="620" cy="462" r="8"></circle>
-                <text class="map-label" x="620" y="490" text-anchor="middle">
-                  中环 / 尖沙咀
-                </text>
-              </g>
-
-
-              <text
-                class="schematic-text"
-                x="24"
-                y="498"
-              >
-                Schematic / not to scale · 仅表示旅行区域关系
-              </text>
-
-            </svg>
-
-          </div>
-
-        </article>
-
-
-
-        <!-- Trip days -->
-
-        <article class="content-card">
-
-          <div class="section-heading-row">
-
-            <div>
-              <p class="section-kicker">
-                SIX DAYS
-              </p>
-
-              <h2>
-                六天行程骨架
-              </h2>
-            </div>
-
-          </div>
-
-
-          <div
-            id="overviewDays"
-            class="overview-days"
-          >
-            <!-- JS -->
-          </div>
-
-        </article>
-
-
-
-        <!-- Fixed bookings -->
-
-        <article class="content-card">
-
-          <div class="section-heading-row">
-
-            <div>
-              <p class="section-kicker">
-                CONFIRMED
-              </p>
-
-              <h2>
-                已确认信息
-              </h2>
-            </div>
-
-          </div>
-
-
-          <div class="booking-list">
-
-            <div class="booking-card">
-
-              <div class="booking-icon">
-                ✈️
-              </div>
-
-              <div class="booking-content">
-
-                <span class="booking-type">
-                  去程航班
-                </span>
-
-                <strong>
-                  CZ5844
-                </strong>
-
-                <p>
-                  2026.10.02 · 16:15
-                  <br>
-                  青岛胶东 T1 → 深圳宝安 T3
-                </p>
-
-                <span class="booking-timezone">
-                  UTC+8
-                </span>
-
-              </div>
-
-            </div>
-
-
-            <div class="booking-card">
-
-              <div class="booking-icon">
-                🏨
-              </div>
-
-              <div class="booking-content">
-
-                <span class="booking-type">
-                  深圳住宿
-                </span>
-
-                <strong>
-                  鲟鱼向海青年旅舍
-                </strong>
-
-                <p>
-                  南山科技园店
-                  <br>
-                  南山区科技南二路与高新南四道交叉口南50米路东
-                </p>
-
-                <span class="booking-timezone">
-                  10/2 → 10/7 · 5晚
-                </span>
-
-              </div>
-
-            </div>
-
-
-            <div class="booking-card">
-
-              <div class="booking-icon">
-                ✈️
-              </div>
-
-              <div class="booking-content">
-
-                <span class="booking-type">
-                  返程航班
-                </span>
-
-                <strong>
-                  ZH9915
-                </strong>
-
-                <p>
-                  2026.10.07 · 07:45
-                  <br>
-                  深圳宝安 T3 → 青岛胶东 T1
-                </p>
-
-                <span class="booking-timezone">
-                  UTC+8
-                </span>
-
-              </div>
-
-            </div>
-
-          </div>
-
-        </article>
-
-
-
-        <!-- Weather flex -->
-
-        <article class="content-card weather-card">
-
-          <div class="weather-icon">
-            🌦️
-          </div>
-
-          <div>
-
-            <p class="section-kicker">
-              HONG KONG FLEX DAY
-            </p>
-
-            <h2>
-              香港暂定 10/4
-            </h2>
-
-            <p>
-              当前初稿将香港安排在 10 月 4 日。
-              临近出发比较 10/3–10/6 天气后，
-              可以整体交换深圳日程，不硬塞雨天户外 CityWalk。
-            </p>
-
-          </div>
-
-        </article>
-
-
-      </section>
-
-
-
-      <!-- =====================================================
-           MAP
-      ====================================================== -->
-
-      <section
-        id="map"
-        class="tab-panel"
-      >
-
-        <article class="content-card">
-
-          <div class="section-heading-row">
-
-            <div>
-
-              <p class="section-kicker">
-                ROUTE MAP
-              </p>
-
-              <h2>
-                旅行地点
-              </h2>
-
-              <p class="section-description">
-                这里用于查看单个地点。
-                深圳使用百度地图，香港使用 Google Maps。
-                每日行程里的按钮则负责「上一站 → 下一站」路线规划。
-              </p>
-
-            </div>
-
-          </div>
-
-
-          <div
-            id="routeFilter"
-            class="route-filter"
-            aria-label="路线筛选"
-          >
-            <!-- JS -->
-          </div>
-
-
-          <div
-            id="routeAxis"
-            class="route-axis"
-          >
-            <!-- JS -->
-          </div>
-
-        </article>
-
-
-
-        <article class="content-card map-visual-card">
-
-          <div class="section-heading-row">
-
-            <div>
-
-              <p class="section-kicker">
-                AREA VIEW
-              </p>
-
-              <h2 id="mapVisualTitle">
-                全部路线
-              </h2>
-
-            </div>
-
-            <span class="schematic-badge">
-              NOT TO SCALE
-            </span>
-
-          </div>
-
-
-          <div
-            id="interactiveRouteVisual"
-            class="interactive-route-visual"
-          >
-            <!-- JS-generated schematic SVG -->
-          </div>
-
-        </article>
-
-
-
-        <div
-          id="mapPlaces"
-          class="map-place-list"
-        >
-          <!-- JS -->
-        </div>
-
-      </section>
-
-
-
-      <!-- =====================================================
-           DAILY ITINERARY
-      ====================================================== -->
-
-      <section
-        id="days"
-        class="tab-panel"
-      >
-
-        <div class="daily-toolbar">
-
-          <div>
-
-            <p class="section-kicker">
-              DAILY PLAN
-            </p>
-
-            <h2>
-              每日行程
-            </h2>
-
-          </div>
-
-
-          <label class="day-select-wrap">
-
-            <span>
-              查看日期
-            </span>
-
-            <select
-              id="daySelect"
-              aria-label="选择行程日期"
-            >
-              <!-- JS -->
-            </select>
-
-          </label>
-
-        </div>
-
-
-        <div id="dailyContent">
-          <!-- JS -->
-        </div>
-
-      </section>
-
-
-
-      <!-- =====================================================
-           TODO
-      ====================================================== -->
-
-      <section
-        id="todo"
-        class="tab-panel"
-      >
-
-        <article class="content-card">
-
-          <div class="section-heading-row">
-
-            <div>
-
-              <p class="section-kicker">
-                BEFORE DEPARTURE
-              </p>
-
-              <h2>
-                出发前待办
-              </h2>
-
-              <p class="section-description">
-                这里仍保留 V2.3 的个人浏览器待办功能。
-                新增、完成与删除状态只保存在当前设备。
-              </p>
-
-            </div>
-
-          </div>
-
-
-          <form
-            id="todoForm"
-            class="todo-form"
-          >
-
-            <label for="todoInput">
-              新增待办
-            </label>
-
-            <div class="todo-input-row">
-
-              <input
-                id="todoInput"
-                type="text"
-                maxlength="120"
-                placeholder="例如：确认香港高铁票"
-                autocomplete="off"
-              >
-
-              <button
-                type="submit"
-                class="primary-button"
-              >
-                添加
-              </button>
-
-            </div>
-
-          </form>
-
-
-          <div
-            id="todoList"
-            class="todo-list"
-          >
-            <!-- JS -->
-          </div>
-
-        </article>
-
-      </section>
-
-    </main>
-
-
-
-    <!-- =========================
-         FOOTER
-    ========================== -->
-
-    <footer class="site-footer">
-
-      <p>
-        深圳 × 香港 · 2026
+      <p class="muted">
+        真实地图底图 · 地点按真实地址定位 · 有道路数据时显示真实道路轨迹
       </p>
 
-      <button
-        id="openChangelog"
-        type="button"
-        class="version-button"
-      >
-        V2.4 · 查看更新记录
-      </button>
+      <div id="overviewMap" class="real-map overview-map"></div>
 
-    </footer>
-
-  </div>
-
-
-
-  <!-- =========================
-       CHANGELOG MODAL
-  ========================== -->
-
-  <div
-    id="changelogModal"
-    class="modal-backdrop"
-    hidden
-  >
-
-    <section
-      class="modal-panel"
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="changelogTitle"
-    >
-
-      <div class="modal-header">
-
-        <div>
-
-          <p class="section-kicker">
-            VERSION HISTORY
-          </p>
-
-          <h2 id="changelogTitle">
-            更新记录
-          </h2>
-
-        </div>
-
-        <button
-          id="closeChangelog"
-          type="button"
-          class="modal-close"
-          aria-label="关闭更新记录"
-        >
-          ×
-        </button>
-
+      <div class="map-legend">
+        <span><i class="d2"></i>10/3 深超总</span>
+        <span><i class="d3"></i>10/4 香港</span>
+        <span><i class="d4"></i>10/5 福田</span>
+        <span><i class="d5"></i>10/6 南山</span>
       </div>
-
-
-      <div
-        id="changelogContent"
-        class="changelog-content"
-      >
-        正在读取更新记录…
-      </div>
-
     </section>
 
-  </div>
+
+    <section class="card">
+      <p class="eyebrow">6 DAYS</p>
+      <h2>六天行程骨架</h2>
+
+      <div id="daySkeleton" class="day-skeleton"></div>
+    </section>
 
 
+    <section class="card">
+      <p class="eyebrow">FIXED BOOKINGS</p>
+      <h2>已确定</h2>
 
-  <!-- =========================
-       NAVIGATION FALLBACK MODAL
-  ========================== -->
-
-  <div
-    id="navigationModal"
-    class="modal-backdrop"
-    hidden
-  >
-
-    <section
-      class="modal-panel navigation-modal-panel"
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="navigationModalTitle"
-    >
-
-      <div class="modal-header">
-
+      <div class="booking">
+        <span>✈️</span>
         <div>
-
-          <p class="section-kicker">
-            NAVIGATION
-          </p>
-
-          <h2 id="navigationModalTitle">
-            打开导航
-          </h2>
-
+          <small>10/2 · CZ5844</small>
+          <strong>青岛 16:15 → 深圳 19:40</strong>
         </div>
-
-        <button
-          id="closeNavigationModal"
-          type="button"
-          class="modal-close"
-          aria-label="关闭导航窗口"
-        >
-          ×
-        </button>
-
       </div>
 
+      <div class="booking">
+        <span>🏨</span>
+        <div>
+          <small>10/2 — 10/7</small>
+          <strong>鲟鱼向海青年旅舍 · 南山科技园</strong>
+        </div>
+      </div>
 
-      <div id="navigationModalContent">
+      <div class="booking">
+        <span>✈️</span>
+        <div>
+          <small>10/7 · ZH9915</small>
+          <strong>深圳 07:45 → 青岛 11:05</strong>
+        </div>
+      </div>
+    </section>
 
-        <p class="navigation-modal-text">
-          正在尝试打开地图 App…
+
+    <section class="card weather">
+      <span class="weather-icon">🌦</span>
+
+      <div>
+        <p class="eyebrow">HONG KONG WEATHER FLEX</p>
+        <h2>香港暂定 10/4</h2>
+        <p>
+          10/3–10/6 根据降雨、能见度和户外条件整体调整。
         </p>
-
       </div>
-
     </section>
 
+  </main>
+
+
+  <!-- MAP -->
+  <main id="map" class="panel">
+
+    <section class="card">
+      <p class="eyebrow">TRAVEL TRACE</p>
+      <h2>旅行地点</h2>
+
+      <div id="routeFilters" class="filter-row"></div>
+
+      <div id="mainMap" class="real-map main-map"></div>
+
+      <p id="mapStatus" class="map-status">
+        正在加载真实地点…
+      </p>
+    </section>
+
+    <div id="placeCards"></div>
+
+  </main>
+
+
+  <!-- DAYS -->
+  <main id="days" class="panel">
+
+    <div class="day-toolbar">
+      <div>
+        <p class="eyebrow">DAILY PLAN</p>
+        <h2>每日行程</h2>
+      </div>
+
+      <select id="daySelect"></select>
+    </div>
+
+    <div id="dailyContent"></div>
+
+  </main>
+
+
+  <!-- TODO -->
+  <main id="todo" class="panel">
+
+    <section class="card">
+      <p class="eyebrow">BEFORE DEPARTURE</p>
+      <h2>待办清单</h2>
+
+      <form id="todoForm" class="todo-form">
+        <input
+          id="todoInput"
+          type="text"
+          placeholder="添加一个待办…"
+          autocomplete="off"
+        >
+        <button>＋</button>
+      </form>
+
+      <div id="todoList"></div>
+    </section>
+
+  </main>
+
+
+  <footer>
+    <span>深圳 × 香港 · 2026</span>
+    <button id="openChangelog">V2.4.1 · 更新记录</button>
+  </footer>
+
+</div>
+
+
+<div id="changelogModal" class="modal" hidden>
+  <div class="modal-card">
+    <button id="closeChangelog" class="modal-close">×</button>
+    <p class="eyebrow">VERSION HISTORY</p>
+    <h2>更新记录</h2>
+    <div id="changelogContent"></div>
   </div>
+</div>
 
 
-
-  <!-- =========================
-       TOAST
-  ========================== -->
-
-  <div
-    id="toast"
-    class="toast"
-    role="status"
-    aria-live="polite"
-    hidden
-  >
-  </div>
+<div id="toast" class="toast" hidden></div>
 
 
+<script
+  src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js">
+</script>
 
-  <script src="script.js?v=2.4"></script>
+<script src="script.js?v=2.4.1"></script>
 
 </body>
 </html>
