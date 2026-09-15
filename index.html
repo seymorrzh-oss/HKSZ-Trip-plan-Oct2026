@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#f5f2eb" />
+  <title>深圳 × 香港｜2026 国庆建筑旅行</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+
+<body>
+  <main class="app">
+
+    <!-- HERO -->
+    <header class="hero">
+      <div class="eyebrow">ARCHITECTURE TRIP · 2026</div>
+
+      <h1>深圳 × 香港</h1>
+      <p class="hero-title">国庆建筑旅行</p>
+
+      <div class="hero-meta">
+        <span>10.02 — 10.07</span>
+        <span>6天5晚</span>
+        <span>深圳 · 香港</span>
+      </div>
+    </header>
+
+    <!-- STATUS -->
+    <section class="status-row">
+      <span class="chip confirmed">✈️ 机票已出票</span>
+      <span class="chip confirmed">🏨 深圳住宿已订</span>
+      <span class="chip pending">🚄 香港高铁待定</span>
+      <span class="chip pending">🌤 香港日期看天气</span>
+    </section>
+
+    <!-- NOW -->
+    <section class="now-card">
+      <div class="section-label">此刻关注 · NOW</div>
+
+      <div class="now-main">
+        <div>
+          <div class="now-kicker">NEXT</div>
+          <h2 id="nextTitle">飞往深圳</h2>
+          <p id="nextDetail">CZ5844 · 青岛 → 深圳</p>
+        </div>
+
+        <div class="date-badge">
+          <strong>02</strong>
+          <span>OCT</span>
+        </div>
+      </div>
+
+      <div class="countdown">
+        <div class="count-item">
+          <strong id="days">--</strong>
+          <span>天</span>
+        </div>
+        <div class="count-item">
+          <strong id="hours">--</strong>
+          <span>时</span>
+        </div>
+        <div class="count-item">
+          <strong id="minutes">--</strong>
+          <span>分</span>
+        </div>
+        <div class="count-item">
+          <strong id="seconds">--</strong>
+          <span>秒</span>
+        </div>
+      </div>
+
+      <p class="countdown-caption">距离旅程开始</p>
+    </section>
+
+    <!-- NAV -->
+    <nav class="tabs">
+      <button class="tab active" data-tab="overview">总览</button>
+      <button class="tab" data-tab="map">地图</button>
+      <button class="tab" data-tab="days">每日行程</button>
+      <button class="tab" data-tab="todo">待办</button>
+    </nav>
+
+    <!-- OVERVIEW -->
+    <section id="overview" class="tab-panel active">
+
+      <div class="section-heading">
+        <div>
+          <span class="section-label">TRIP OVERVIEW</span>
+          <h2>六天旅行骨架</h2>
+        </div>
+      </div>
+
+      <div id="overviewDays" class="day-list"></div>
+
+      <section class="mini-card">
+        <span class="section-label">TRIP STYLE</span>
+        <h3>这不是传统景点旅行</h3>
+        <p>
+          建筑、城市空间、摄影机位和吃饭全部放进同一条路线。
+          深圳重点观察成熟 CBD 与正在形成的超级总部基地之间的差异。
+        </p>
+      </section>
+    </section>
+
+    <!-- MAP -->
+    <section id="map" class="tab-panel">
+
+      <div class="section-heading">
+        <div>
+          <span class="section-label">GEOGRAPHY</span>
+          <h2>打卡地图 · V1</h2>
+        </div>
+      </div>
+
+      <p class="muted">
+        V1 先按地理关系展示。下一版会接入真实地图坐标与导航。
+      </p>
+
+      <div class="filter-row">
+        <button class="filter active" data-filter="all">全部</button>
+        <button class="filter" data-filter="architecture">建筑</button>
+        <button class="filter" data-filter="food">吃饭</button>
+        <button class="filter" data-filter="photo">机位</button>
+        <button class="filter" data-filter="optional">可选</button>
+      </div>
+
+      <div class="schematic-map">
+
+        <div class="map-line"></div>
+
+        <div class="map-zone">
+          <span class="zone-name">西</span>
+          <strong>蛇口 / 太子湾</strong>
+          <small>K11 ECOAST · 海上世界</small>
+        </div>
+
+        <div class="map-zone">
+          <span class="zone-name">南山</span>
+          <strong>科技园</strong>
+          <small>🏨 住宿 · 万象天地</small>
+        </div>
+
+        <div class="map-zone highlight">
+          <span class="zone-name">深圳湾</span>
+          <strong>后海 / 深超总</strong>
+          <small>MAD · 人才公园 · C Tower</small>
+        </div>
+
+        <div class="map-zone">
+          <span class="zone-name">福田</span>
+          <strong>CBD / 华强北</strong>
+          <small>市民中心 · 两馆 · SEG</small>
+        </div>
+
+        <div class="map-zone">
+          <span class="zone-name">东</span>
+          <strong>罗湖</strong>
+          <small>烧腊 · 城市街区</small>
+        </div>
+
+      </div>
+
+      <div id="placesList" class="places-list"></div>
+    </section>
+
+    <!-- DAYS -->
+    <section id="days" class="tab-panel">
+
+      <div class="section-heading">
+        <div>
+          <span class="section-label">DAILY PLAN</span>
+          <h2>每日行程</h2>
+        </div>
+      </div>
+
+      <div id="dailyPlans"></div>
+    </section>
+
+    <!-- TODO -->
+    <section id="todo" class="tab-panel">
+
+      <div class="section-heading">
+        <div>
+          <span class="section-label">BEFORE DEPARTURE</span>
+          <h2>出发前待办</h2>
+        </div>
+      </div>
+
+      <div id="todoList" class="todo-list"></div>
+    </section>
+
+    <footer>
+      <p>深圳 × 香港 · 2026</p>
+      <small>Architecture · City · Food · Photography</small>
+    </footer>
+
+  </main>
+
+  <script src="script.js"></script>
+</body>
+</html>
