@@ -1,1887 +1,2155 @@
-/* ==========================================================
-   深圳 × 香港 2026
-   Travel Dashboard V2.2
-   Clean Build + Live Local-Time Countdown
-========================================================== */
+const VERSION = "2.3";
+
+const STORAGE = {
+  todos: "hksz_v23_todos",
+  checks: "hksz_v23_checks"
+};
+
+const pad = n => String(n).padStart(2, "0");
+
+const esc = s =>
+  String(s).replace(/[&<>"']/g, c => ({
+    "&": "&amp;",
+    "<": "&lt;",
+    ">": "&gt;",
+    '"': "&quot;",
+    "'": "&#39;"
+  }[c]));
 
 
 /* ==========================================================
-   BASIC SETTINGS
+   TRIP DATA
 ========================================================== */
 
-const TRIP_YEAR = 2026;
-
-
-/* ==========================================================
-   MAP HELPERS
-========================================================== */
-
-function getMapUrl(place) {
-
-  const query = encodeURIComponent(
-    place.mapQuery || place.name || place.title || ""
-  );
-
-  // 香港 → Google Maps
-  if (place.city === "hongkong") {
-    return (
-      "https://www.google.com/maps/search/?api=1&query=" +
-      query
-    );
-  }
-
-  // 深圳 → 百度地图官方 URI API
-  return (
-    "https://api.map.baidu.com/place/search" +
-    "?query=" + query +
-    "&region=" + encodeURIComponent("深圳") +
-    "&output=html" +
-    "&src=SZHKTrip2026"
-  );
-}
-
-
-/* ==========================================================
-   TRIP DAYS
-========================================================== */
-
-const days = [
-
+const tripDays = [
   {
     date: "10/02",
     day: "DAY 1",
     title: "抵达深圳",
-    summary: "青岛 → 深圳 → 南山科技园",
-    route: "青岛 → 宝安机场 → 青旅",
-
-    timeline: [
-
-      {
-        time: "16:15",
-        title: "CZ5844 起飞",
-        detail: "青岛胶东 T1 → 深圳宝安 T3"
-      },
-
-      {
-        time: "19:40",
-        title: "抵达深圳",
-        detail: "抵达深圳宝安国际机场",
-        city: "shenzhen",
-        mapQuery: "深圳宝安国际机场 T3航站楼"
-      },
-
-      {
-        time: "21:00",
-        title: "前往青旅",
-        detail: "入住南山科技园",
-        city: "shenzhen",
-        mapQuery: "鲟鱼向海青年旅舍 南山科技园店"
-      },
-
-      {
-        time: "21:30",
-        title: "附近晚餐",
-        detail: "第一晚以休息为主，不安排正式建筑打卡"
-      }
-
+    theme: "青岛 → 深圳 · 入住南山",
+    events: [
+      [
+        "16:15",
+        "CZ5844 起飞",
+        "青岛胶东 T1 → 深圳宝安 T3",
+        "transport",
+        "青岛胶东国际机场"
+      ],
+      [
+        "19:40",
+        "抵达深圳",
+        "取行李后前往南山科技园",
+        "transport",
+        "深圳宝安国际机场T3航站楼"
+      ],
+      [
+        "21:20",
+        "入住青旅",
+        "鲟鱼向海青年旅舍（南山科技园店）",
+        "hotel",
+        "鲟鱼向海青年旅舍 南山科技园店"
+      ],
+      [
+        "21:40",
+        "附近简单晚饭",
+        "不安排远距离打卡，早点休息",
+        "food",
+        "南山科技园"
+      ]
     ]
   },
-
 
   {
     date: "10/03",
     day: "DAY 2",
     title: "深超总 · 未来深圳",
-    summary: "总部建筑 + CityWalk + 深圳湾",
-
-    route:
-      "红树湾南 → 招商 → 中国电子 → C Tower → OPPO → B Tower → 碳云 → 深圳湾",
-
-    timeline: [
-
-      {
-        time: "09:30",
-        title: "红树湾南站",
-        detail: "深超总 CityWalk 起点",
-        city: "shenzhen",
-        mapQuery: "红树湾南地铁站"
-      },
-
-      {
-        time: "10:00",
-        title: "招商银行全球总部",
-        detail: "Foster + Partners",
-        city: "shenzhen",
-        mapQuery: "招商银行全球总部 深圳湾超级总部基地"
-      },
-
-      {
-        time: "10:40",
-        title: "中国电子深圳总部",
-        detail: "Gensler · 总部建筑",
-        city: "shenzhen",
-        mapQuery: "中国电子深圳湾总部基地"
-      },
-
-      {
-        time: "11:20",
-        title: "C Tower",
-        detail: "Zaha Hadid Architects · 在建观察",
-        city: "shenzhen",
-        mapQuery: "C塔 深圳湾超级总部基地"
-      },
-
-      {
-        time: "12:00",
-        title: "OPPO 全球总部",
-        detail: "深超总重点建筑摄影",
-        city: "shenzhen",
-        mapQuery: "OPPO全球总部 深圳湾超级总部基地"
-      },
-
-      {
-        time: "14:00",
-        title: "B Tower",
-        detail: "Pelli Clarke & Partners",
-        city: "shenzhen",
-        mapQuery: "B塔 深圳湾超级总部基地"
-      },
-
-      {
-        time: "15:00",
-        title: "碳云大厦",
-        detail: "Steven Holl Architects",
-        city: "shenzhen",
-        mapQuery: "碳云大厦 深圳"
-      },
-
-      {
-        time: "16:00",
-        title: "滨河大道下沉空间",
-        detail: "城市景观与新开放地面公共空间",
-        city: "shenzhen",
-        mapQuery: "深圳湾超级总部基地 滨河大道"
-      },
-
-      {
-        time: "17:30",
-        title: "深圳湾公园",
-        detail: "滨水步行 / 日落",
-        city: "shenzhen",
-        mapQuery: "深圳湾公园"
-      }
-
+    theme: "建筑主线 · 不赶路",
+    events: [
+      [
+        "09:20",
+        "红树湾南",
+        "深超总 CityWalk 起点",
+        "transport",
+        "红树湾南地铁站"
+      ],
+      [
+        "09:40",
+        "招商银行全球总部",
+        "Foster + Partners · 观察塔楼与城市界面",
+        "architecture",
+        "招商银行全球总部 深圳"
+      ],
+      [
+        "10:30",
+        "中国电子深圳湾总部基地",
+        "Gensler · 超总建筑群",
+        "architecture",
+        "中国电子深圳湾总部基地"
+      ],
+      [
+        "11:20",
+        "C Tower",
+        "Zaha Hadid Architects · 建设中的未来深圳",
+        "architecture",
+        "C Tower 深圳湾超级总部基地"
+      ],
+      [
+        "12:00",
+        "OPPO 全球总部 / 欧加大厦",
+        "重点项目，预留建筑观察与拍摄时间",
+        "architecture",
+        "OPPO全球总部 深圳湾超级总部基地"
+      ],
+      [
+        "13:10",
+        "午饭 / 休息",
+        "就近解决，不为餐厅折返",
+        "food",
+        "深圳湾超级总部基地"
+      ],
+      [
+        "14:20",
+        "B Tower",
+        "PCPA 项目，现场确认施工与可视范围",
+        "architecture",
+        "深圳湾超级总部基地 B Tower"
+      ],
+      [
+        "15:00",
+        "碳云大厦",
+        "Steven Holl Architects",
+        "architecture",
+        "碳云大厦 深圳"
+      ],
+      [
+        "16:00",
+        "滨河大道下沉段",
+        "看交通基础设施与新开放地面绿化",
+        "city",
+        "滨河大道 深圳湾超级总部基地"
+      ],
+      [
+        "17:20",
+        "深圳湾公园",
+        "作为当天滨水收尾，按体力决定停留",
+        "city",
+        "深圳湾公园"
+      ]
     ]
   },
-
 
   {
     date: "10/04",
     day: "DAY 3",
-    title: "香港 · 建筑摄影日 🌤",
-    summary: "暂定日期 · 根据天气可与深圳行程互换",
-
-    route:
-      "福田 → 西九龙 → 尖沙咀 → 天星小轮 → 中环 → 香港公园 → 尖沙咀 → 西九龙",
-
-    timeline: [
-
-      {
-        time: "07:00",
-        title: "前往福田站",
-        detail: "准备乘高铁前往香港",
-        city: "shenzhen",
-        mapQuery: "福田站 深圳"
-      },
-
-      {
-        time: "08:00",
-        title: "福田 → 香港西九龙",
-        detail: "高铁车次与时间后续确认"
-      },
-
-      {
-        time: "08:30",
-        title: "香港西九龙站",
-        detail: "Aedas · 抵港第一座建筑",
-        city: "hongkong",
-        mapQuery: "Hong Kong West Kowloon Station"
-      },
-
-      {
-        time: "09:00",
-        title: "龙城冰室",
-        detail: "菠萝油 + 热奶茶",
-        city: "hongkong",
-        mapQuery: "龙城冰室 尖沙咀 香港"
-      },
-
-      {
-        time: "10:00",
-        title: "K11 MUSEA",
-        detail: "尖沙咀 / 维多利亚港",
-        city: "hongkong",
-        mapQuery: "K11 MUSEA Hong Kong"
-      },
-
-      {
-        time: "11:30",
-        title: "天星小轮",
-        detail: "尖沙咀 → 中环",
-        city: "hongkong",
-        mapQuery: "Star Ferry Pier Tsim Sha Tsui Hong Kong"
-      },
-
-      {
-        time: "12:00",
-        title: "香港汇丰银行总部",
-        detail: "Foster + Partners · 1986",
-        city: "hongkong",
-        mapQuery: "HSBC Main Building Hong Kong"
-      },
-
-      {
-        time: "12:30",
-        title: "香港中银大厦",
-        detail: "I. M. Pei · 1989",
-        city: "hongkong",
-        mapQuery: "Bank of China Tower Hong Kong"
-      },
-
-      {
-        time: "13:30",
-        title: "The Henderson",
-        detail: "Zaha Hadid Architects · 中环摄影重点",
-        city: "hongkong",
-        mapQuery: "The Henderson 2 Murray Road Hong Kong"
-      },
-
-      {
-        time: "14:30",
-        title: "香港公园",
-        detail: "植物 / 瀑布 / 摩天楼",
-        city: "hongkong",
-        mapQuery: "Hong Kong Park"
-      },
-
-      {
-        time: "15:30",
-        title: "The Murray",
-        detail: "Foster + Partners · 2018",
-        city: "hongkong",
-        mapQuery: "The Murray Hong Kong"
-      },
-
-      {
-        time: "16:30",
-        title: "中环摄影 CityWalk",
-        detail: "花园道天桥 / J2 / 皇后大道中",
-        city: "hongkong",
-        mapQuery: "Central Hong Kong"
-      },
-
-      {
-        time: "18:00",
-        title: "维多利亚港",
-        detail: "蓝调 / 海港城 / Ocean Terminal",
-        city: "hongkong",
-        mapQuery: "Victoria Harbour Hong Kong"
-      },
-
-      {
-        time: "20:30",
-        title: "香港西九龙站",
-        detail: "准备返回深圳",
-        city: "hongkong",
-        mapQuery: "Hong Kong West Kowloon Station"
-      }
-
+    title: "🇭🇰 香港建筑摄影日",
+    theme: "暂定 10/4 · 天气可整体换日",
+    events: [
+      [
+        "07:15",
+        "前往福田站",
+        "预留过关与高铁时间；车次待订",
+        "transport",
+        "福田站"
+      ],
+      [
+        "09:00",
+        "香港西九龙站",
+        "Aedas · 抵港建筑第一站",
+        "architecture",
+        "Hong Kong West Kowloon Station"
+      ],
+      [
+        "09:30",
+        "尖沙咀早餐",
+        "龙城冰室优先：菠萝油 + 热奶茶",
+        "food",
+        "龙城冰室 尖沙咀"
+      ],
+      [
+        "10:20",
+        "尖沙咀 / 西九龙城市步行",
+        "根据高铁实际到达时间压缩或展开",
+        "city",
+        "Tsim Sha Tsui Hong Kong"
+      ],
+      [
+        "11:00",
+        "天星小轮 → 中环",
+        "把维港交通本身作为城市体验",
+        "transport",
+        "Star Ferry Pier Tsim Sha Tsui"
+      ],
+      [
+        "11:30",
+        "汇丰银行总部",
+        "Foster + Partners · 1986",
+        "architecture",
+        "HSBC Main Building Hong Kong"
+      ],
+      [
+        "12:00",
+        "中银大厦",
+        "I. M. Pei · 1989 · 重点",
+        "architecture",
+        "Bank of China Tower Hong Kong"
+      ],
+      [
+        "12:35",
+        "中环摄影机位",
+        "花园道 / 中银对面天桥等按现场顺路拍摄",
+        "photo",
+        "Garden Road Hong Kong"
+      ],
+      [
+        "13:10",
+        "The Henderson",
+        "Zaha Hadid Architects · 2 Murray Road",
+        "architecture",
+        "The Henderson Hong Kong"
+      ],
+      [
+        "13:50",
+        "香港公园",
+        "高楼、植物、水景之间的城市空间",
+        "city",
+        "Hong Kong Park"
+      ],
+      [
+        "14:25",
+        "The Murray",
+        "Foster + Partners · 改造项目",
+        "architecture",
+        "The Murray Hong Kong"
+      ],
+      [
+        "15:10",
+        "Apple Store（需要时）",
+        "如购买 AirPods，可在中环路线中完成",
+        "city",
+        "Apple Causeway Bay Hong Kong"
+      ],
+      [
+        "16:10",
+        "返回尖沙咀",
+        "天星小轮 / 港铁按现场体力选择",
+        "transport",
+        "Star Ferry Central Pier"
+      ],
+      [
+        "16:40",
+        "K11 MUSEA",
+        "建筑与室内城市空间",
+        "architecture",
+        "K11 MUSEA"
+      ],
+      [
+        "17:30",
+        "维港 / 星光大道",
+        "傍晚进入蓝调摄影时段",
+        "photo",
+        "Avenue of Stars Hong Kong"
+      ],
+      [
+        "18:20",
+        "海港城 / Ocean Terminal Deck",
+        "维港城市景观；按体力选择",
+        "city",
+        "Ocean Terminal Deck Hong Kong"
+      ],
+      [
+        "19:20",
+        "晚饭",
+        "Jollibee / 添好运等按当时位置决定",
+        "food",
+        "Tsim Sha Tsui Hong Kong"
+      ],
+      [
+        "20:00",
+        "维港夜景",
+        "若时间合适看幻彩咏香江",
+        "photo",
+        "Victoria Harbour Hong Kong"
+      ],
+      [
+        "20:40",
+        "返回西九龙站",
+        "按最终高铁票调整",
+        "transport",
+        "Hong Kong West Kowloon Station"
+      ],
+      [
+        "22:30",
+        "返回深圳青旅",
+        "结束香港一日",
+        "hotel",
+        "鲟鱼向海青年旅舍 南山科技园店"
+      ]
     ]
   },
-
 
   {
     date: "10/05",
     day: "DAY 4",
     title: "福田 CBD × 华强北",
-    summary: "成熟 CBD 与电子产业深圳",
-
-    route:
-      "市民中心 → 两馆 → 莲花山 → 福田 CBD → 华强北",
-
-    timeline: [
-
-      {
-        time: "09:30",
-        title: "深圳市民中心",
-        detail: "福田城市轴线",
-        city: "shenzhen",
-        mapQuery: "深圳市民中心"
-      },
-
-      {
-        time: "10:30",
-        title: "两馆",
-        detail: "深圳市当代艺术与城市规划馆",
-        city: "shenzhen",
-        mapQuery: "深圳市当代艺术与城市规划馆"
-      },
-
-      {
-        time: "12:00",
-        title: "莲花山公园",
-        detail: "俯瞰福田 CBD 天际线",
-        city: "shenzhen",
-        mapQuery: "莲花山公园 深圳"
-      },
-
-      {
-        time: "14:00",
-        title: "福田 CBD",
-        detail: "平安金融中心 / 城市空间",
-        city: "shenzhen",
-        mapQuery: "平安金融中心 深圳"
-      },
-
-      {
-        time: "16:00",
-        title: "华强北步行街",
-        detail: "电子市场 / LED / 街道",
-        city: "shenzhen",
-        mapQuery: "华强北步行街 深圳"
-      },
-
-      {
-        time: "17:00",
-        title: "赛格广场",
-        detail: "电子产业城市影像",
-        city: "shenzhen",
-        mapQuery: "赛格广场 深圳"
-      },
-
-      {
-        time: "18:00",
-        title: "蘩楼 · 华强北总店",
-        detail: "晚餐",
-        city: "shenzhen",
-        mapQuery: "蘩楼 华强北总店 深圳"
-      }
-
+    theme: "成熟深圳 · 城市与产业对照",
+    events: [
+      [
+        "09:30",
+        "深圳市民中心",
+        "福田 CBD 城市轴线",
+        "architecture",
+        "深圳市民中心"
+      ],
+      [
+        "10:20",
+        "当代艺术与城市规划馆",
+        "两馆 · 福中路184号",
+        "architecture",
+        "深圳市当代艺术与城市规划馆"
+      ],
+      [
+        "12:00",
+        "午饭 / 休息",
+        "福田就近解决",
+        "food",
+        "福田中心区"
+      ],
+      [
+        "13:20",
+        "莲花山公园",
+        "以城市天际线视角为主，不安排爬山式游览",
+        "city",
+        "莲花山公园 深圳"
+      ],
+      [
+        "14:30",
+        "平安金融中心 / 福田CBD",
+        "成熟高密度深圳城市空间",
+        "architecture",
+        "平安金融中心 深圳"
+      ],
+      [
+        "16:00",
+        "华强北步行街",
+        "产业、电子、街道城市观察",
+        "city",
+        "华强北步行街"
+      ],
+      [
+        "16:30",
+        "赛格广场 / 电子市场",
+        "赛格、华强电子世界按兴趣进入",
+        "architecture",
+        "赛格广场 深圳"
+      ],
+      [
+        "18:00",
+        "蘩楼 / 肥韬",
+        "优先在华强北解决晚饭",
+        "food",
+        "蘩楼 华强北总店"
+      ],
+      [
+        "20:00",
+        "返回酒店",
+        "保留体力",
+        "hotel",
+        "鲟鱼向海青年旅舍 南山科技园店"
+      ]
     ]
   },
-
 
   {
     date: "10/06",
     day: "DAY 5",
-    title: "南山滨海 · 慢旅行",
-    summary: "K11 + 蛇口 + 万象天地",
-
-    route:
-      "K11 ECOAST → 太子湾 → 海上世界 → 万象天地 → BEGL",
-
-    timeline: [
-
-      {
-        time: "10:00",
-        title: "K11 ECOAST",
-        detail: "建筑 / 商业 / 滨水空间",
-        city: "shenzhen",
-        mapQuery: "K11 ECOAST 深圳"
-      },
-
-      {
-        time: "12:00",
-        title: "太子湾",
-        detail: "滨海城市空间",
-        city: "shenzhen",
-        mapQuery: "太子湾 深圳"
-      },
-
-      {
-        time: "14:00",
-        title: "海上世界",
-        detail: "蛇口滨水慢走",
-        city: "shenzhen",
-        mapQuery: "海上世界 深圳"
-      },
-
-      {
-        time: "16:30",
-        title: "万象天地",
-        detail: "商业建筑 / 城市公共空间",
-        city: "shenzhen",
-        mapQuery: "深圳万象天地"
-      },
-
-      {
-        time: "18:00",
-        title: "BEGL",
-        detail: "目前优先万象天地店",
-        city: "shenzhen",
-        mapQuery: "BEGL 万象天地 深圳"
-      },
-
-      {
-        time: "20:00",
-        title: "返回青旅",
-        detail: "整理行李 / 明早早起",
-        city: "shenzhen",
-        mapQuery: "鲟鱼向海青年旅舍 南山科技园店"
-      }
-
+    title: "南山滨海 · 轻松收尾",
+    theme: "蛇口 / 太子湾 / 万象天地",
+    events: [
+      [
+        "10:00",
+        "K11 ECOAST",
+        "太子湾滨水商业与公共空间",
+        "architecture",
+        "K11 ECOAST 深圳"
+      ],
+      [
+        "11:30",
+        "太子湾 / 蛇口滨水",
+        "慢走，不追求全部打卡",
+        "city",
+        "太子湾 深圳"
+      ],
+      [
+        "12:30",
+        "午饭",
+        "蛇口就近解决",
+        "food",
+        "海上世界 深圳"
+      ],
+      [
+        "13:40",
+        "海上世界",
+        "蛇口城市与滨水空间",
+        "city",
+        "海上世界 深圳"
+      ],
+      [
+        "15:30",
+        "万象天地",
+        "南山城市商业空间",
+        "city",
+        "深圳万象天地"
+      ],
+      [
+        "16:30",
+        "BEGL",
+        "作为休息节点",
+        "food",
+        "BEGL 万象天地 深圳"
+      ],
+      [
+        "18:00",
+        "晚饭 / 海岸城机动",
+        "小炳胜可根据体力与预约情况决定",
+        "food",
+        "小炳胜 海岸城店"
+      ],
+      [
+        "20:00",
+        "返回酒店整理行李",
+        "第二天早班机",
+        "hotel",
+        "鲟鱼向海青年旅舍 南山科技园店"
+      ]
     ]
   },
-
 
   {
     date: "10/07",
     day: "DAY 6",
-    title: "回青岛",
-    summary: "深圳 → 青岛",
-    route: "青旅 → 宝安机场 → 青岛",
-
-    timeline: [
-
-      {
-        time: "05:00",
-        title: "离开青旅",
-        detail: "提前前往宝安机场",
-        city: "shenzhen",
-        mapQuery: "深圳宝安国际机场 T3航站楼"
-      },
-
-      {
-        time: "07:45",
-        title: "ZH9915 起飞",
-        detail: "深圳宝安 T3 → 青岛胶东 T1"
-      },
-
-      {
-        time: "11:05",
-        title: "抵达青岛",
-        detail: "旅行结束"
-      }
-
+    title: "返回青岛",
+    theme: "早班机 · 不安排景点",
+    events: [
+      [
+        "05:00",
+        "离开青旅",
+        "前往深圳宝安 T3",
+        "transport",
+        "鲟鱼向海青年旅舍 南山科技园店"
+      ],
+      [
+        "07:45",
+        "ZH9915 起飞",
+        "深圳宝安 T3 → 青岛胶东 T1",
+        "transport",
+        "深圳宝安国际机场T3航站楼"
+      ],
+      [
+        "11:05",
+        "抵达青岛",
+        "旅程完成",
+        "transport",
+        "青岛胶东国际机场T1航站楼"
+      ]
     ]
   }
-
 ];
 
 
 /* ==========================================================
-   PLACES DATABASE
+   PLACE DATABASE
 ========================================================== */
 
 const places = [
+  [
+    "hotel",
+    "鲟鱼向海青年旅舍（南山科技园店）",
+    "nanshan",
+    "hotel",
+    "shenzhen",
+    "住宿",
+    "科技南二路 / 高新南四道附近"
+  ],
 
-  {
-    name: "深圳湾超级总部基地",
-    city: "shenzhen",
-    day: "szbay",
-    type: "architecture",
-    icon: "🏙️",
-    detail: "10/3 建筑主线 · 观察正在形成的未来 CBD",
-    tags: ["10/3", "CityWalk"],
-    mapQuery: "深圳湾超级总部基地"
-  },
+  [
+    "hongshuwan",
+    "红树湾南站",
+    "szbay",
+    "transport",
+    "shenzhen",
+    "10/3 起点",
+    "深超总 CityWalk 起点"
+  ],
 
-  {
-    name: "招商银行全球总部",
-    city: "shenzhen",
-    day: "szbay",
-    type: "architecture",
-    icon: "🏛️",
-    detail: "Foster + Partners · 深超总重点建筑",
-    tags: ["Foster", "总部建筑"],
-    mapQuery: "招商银行全球总部 深圳湾超级总部基地"
-  },
+  [
+    "cmb",
+    "招商银行全球总部",
+    "szbay",
+    "architecture",
+    "shenzhen",
+    "Foster + Partners",
+    "深超总重点建筑"
+  ],
 
-  {
-    name: "中国电子深圳总部",
-    city: "shenzhen",
-    day: "szbay",
-    type: "architecture",
-    icon: "🏛️",
-    detail: "Gensler · 总部建筑",
-    tags: ["Gensler"],
-    mapQuery: "中国电子深圳湾总部基地"
-  },
+  [
+    "ce",
+    "中国电子深圳湾总部基地",
+    "szbay",
+    "architecture",
+    "shenzhen",
+    "Gensler",
+    "深超总建筑群"
+  ],
 
-  {
-    name: "C Tower",
-    city: "shenzhen",
-    day: "szbay",
-    type: "architecture",
-    icon: "🏗️",
-    detail: "Zaha Hadid Architects · 建设状态观察",
-    tags: ["Zaha Hadid", "在建"],
-    mapQuery: "C塔 深圳湾超级总部基地"
-  },
+  [
+    "ctower",
+    "C Tower",
+    "szbay",
+    "architecture",
+    "shenzhen",
+    "Zaha Hadid Architects",
+    "建设中"
+  ],
 
-  {
-    name: "OPPO 全球总部",
-    city: "shenzhen",
-    day: "szbay",
-    type: "architecture",
-    icon: "🏗️",
-    detail: "深超总建筑摄影重点",
-    tags: ["OPPO", "总部建筑"],
-    mapQuery: "OPPO全球总部 深圳湾超级总部基地"
-  },
+  [
+    "oppo",
+    "OPPO 全球总部 / 欧加大厦",
+    "szbay",
+    "architecture",
+    "shenzhen",
+    "重点",
+    "与 C Tower 分开记录"
+  ],
 
-  {
-    name: "B Tower",
-    city: "shenzhen",
-    day: "szbay",
-    type: "architecture",
-    icon: "🏛️",
-    detail: "Pelli Clarke & Partners",
-    tags: ["PCPA"],
-    mapQuery: "B塔 深圳湾超级总部基地"
-  },
+  [
+    "btower",
+    "B Tower",
+    "szbay",
+    "architecture",
+    "shenzhen",
+    "PCPA",
+    "现场确认施工状态"
+  ],
 
-  {
-    name: "碳云大厦",
-    city: "shenzhen",
-    day: "szbay",
-    type: "architecture",
-    icon: "🏛️",
-    detail: "Steven Holl Architects",
-    tags: ["Steven Holl"],
-    mapQuery: "碳云大厦 深圳"
-  },
+  [
+    "carbon",
+    "碳云大厦",
+    "szbay",
+    "architecture",
+    "shenzhen",
+    "Steven Holl Architects",
+    "建筑观察"
+  ],
 
-  {
-    name: "滨河大道下沉空间",
-    city: "shenzhen",
-    day: "szbay",
-    type: "city",
-    icon: "🌳",
-    detail: "下沉道路与新开放地面景观",
-    tags: ["景观", "CityWalk"],
-    mapQuery: "深圳湾超级总部基地 滨河大道"
-  },
+  [
+    "railin",
+    "睿印 RAIL IN",
+    "szbay",
+    "city",
+    "shenzhen",
+    "城市 / 商业",
+    "可顺路经过"
+  ],
 
-  {
-    name: "深圳湾公园",
-    city: "shenzhen",
-    day: "szbay",
-    type: "city",
-    icon: "🌊",
-    detail: "滨水空间 · 日落",
-    tags: ["日落", "滨水"],
-    mapQuery: "深圳湾公园"
-  },
+  [
+    "binhe",
+    "滨河大道下沉段",
+    "szbay",
+    "city",
+    "shenzhen",
+    "城市基础设施",
+    "新开放地面绿化"
+  ],
 
-  {
-    name: "深圳湾文化广场",
-    city: "shenzhen",
-    day: "szbay",
-    type: "architecture",
-    icon: "🏛️",
-    detail: "MAD Architects · AirPods 建筑 · 公共空间优先",
-    tags: ["MAD", "AirPods", "必去"],
-    mapQuery: "深圳湾文化广场"
-  },
+  [
+    "szpark",
+    "深圳湾公园",
+    "szbay",
+    "city",
+    "shenzhen",
+    "滨水",
+    "10/3 收尾"
+  ],
 
-  {
-    name: "深圳人才公园",
-    city: "shenzhen",
-    day: "szbay",
-    type: "city",
-    icon: "🌳",
-    detail: "MAD / 后海 / 春笋城市景观节点",
-    tags: ["步行", "后海"],
-    mapQuery: "深圳人才公园"
-  },
+  [
+    "mad",
+    "深圳湾文化广场",
+    "houhai",
+    "architecture",
+    "shenzhen",
+    "MAD Architects",
+    "AirPods 建筑；公共外部空间优先"
+  ],
 
-  {
-    name: "后海大桥 · AirPods × 春笋",
-    city: "shenzhen",
-    day: "szbay",
-    type: "photo",
-    icon: "📸",
-    detail: "人才公园 + 深圳湾文化广场 + 春笋目标构图",
-    tags: ["必拍", "蓝调", "iPhone 17", "Pocket 4"],
-    mapQuery: "后海大桥 深圳人才公园",
+  [
+    "talent",
+    "深圳人才公园",
+    "houhai",
+    "city",
+    "shenzhen",
+    "景观",
+    "与 MAD / 后海联动"
+  ],
 
-    photoNote:
-      "🌇 日落前到位，拍至蓝调亮灯。iPhone 17 优先约 1.5–2× 构图；Pocket 4 适合固定延时、慢推与竖屏城市镜头。"
-  },
+  [
+    "houhaibridge",
+    "后海大桥 · AirPods × 春笋机位",
+    "houhai",
+    "photo",
+    "shenzhen",
+    "蓝调摄影",
+    "iPhone 约1.5–2×；Pocket 4 可拍延时"
+  ],
 
-  {
-    name: "小炳胜 · 海岸城店",
-    city: "shenzhen",
-    day: "szbay",
-    type: "food",
-    icon: "🍚",
-    detail: "后海摄影结束后的晚餐候选",
-    tags: ["晚餐", "海岸城"],
-    mapQuery: "小炳胜 海岸城店 深圳"
-  },
+  [
+    "xiaobingsheng",
+    "小炳胜（海岸城店）",
+    "houhai",
+    "food",
+    "shenzhen",
+    "晚饭候选",
+    "适合 MAD / 后海摄影后"
+  ],
+
+  [
+    "civic",
+    "深圳市民中心",
+    "futian",
+    "architecture",
+    "shenzhen",
+    "10/5",
+    "福田城市轴"
+  ],
+
+  [
+    "mocaup",
+    "深圳市当代艺术与城市规划馆",
+    "futian",
+    "architecture",
+    "shenzhen",
+    "两馆",
+    "福中路184号"
+  ],
+
+  [
+    "lianhua",
+    "莲花山公园",
+    "futian",
+    "city",
+    "shenzhen",
+    "天际线",
+    "以城市视角为主"
+  ],
+
+  [
+    "pingan",
+    "平安金融中心",
+    "futian",
+    "architecture",
+    "shenzhen",
+    "CBD",
+    "成熟深圳"
+  ],
+
+  [
+    "hqbei",
+    "华强北步行街",
+    "futian",
+    "city",
+    "shenzhen",
+    "产业街区",
+    "电子产业城市观察"
+  ],
+
+  [
+    "seg",
+    "赛格广场 / 赛格电子市场",
+    "futian",
+    "architecture",
+    "shenzhen",
+    "华强北",
+    "可进入电子市场"
+  ],
+
+  [
+    "huaqworld",
+    "华强电子世界",
+    "futian",
+    "city",
+    "shenzhen",
+    "电子市场",
+    "按兴趣停留"
+  ],
+
+  [
+    "fanlou",
+    "蘩楼（华强北总店）",
+    "futian",
+    "food",
+    "shenzhen",
+    "晚饭",
+    "振华路附近"
+  ],
+
+  [
+    "feitao",
+    "肥韬茶餐厅（深圳总店）",
+    "futian",
+    "food",
+    "shenzhen",
+    "备选",
+    "华发北路附近"
+  ],
+
+  [
+    "k11",
+    "K11 ECOAST",
+    "nanshan",
+    "architecture",
+    "shenzhen",
+    "10/6",
+    "太子湾滨水"
+  ],
+
+  [
+    "taizi",
+    "太子湾",
+    "nanshan",
+    "city",
+    "shenzhen",
+    "滨水",
+    "与 K11 连走"
+  ],
+
+  [
+    "seaworld",
+    "海上世界 / 蛇口滨水",
+    "nanshan",
+    "city",
+    "shenzhen",
+    "蛇口",
+    "轻松步行"
+  ],
+
+  [
+    "mixc",
+    "万象天地",
+    "nanshan",
+    "city",
+    "shenzhen",
+    "南山",
+    "优先于万象前海"
+  ],
+
+  [
+    "begl",
+    "BEGL · 万象天地",
+    "nanshan",
+    "food",
+    "shenzhen",
+    "休息",
+    "用户偏好节点"
+  ],
+
+  [
+    "changji",
+    "昌记隆江猪脚饭（白石龙店）",
+    "optional",
+    "food",
+    "shenzhen",
+    "可选",
+    "离主线较远，保留不删除"
+  ],
+
+  [
+    "xinfa",
+    "香港新发烧腊茶餐厅",
+    "optional",
+    "food",
+    "shenzhen",
+    "可选",
+    "可选方便分店"
+  ],
+
+  [
+    "nature",
+    "深圳自然博物馆",
+    "optional",
+    "architecture",
+    "shenzhen",
+    "坪山 · 可选半日",
+    "距离南山 / 福田较远"
+  ],
+
+  [
+    "westkowloon",
+    "香港西九龙站",
+    "hk",
+    "architecture",
+    "hongkong",
+    "Aedas",
+    "香港到达节点"
+  ],
+
+  [
+    "lungcity",
+    "龙城冰室",
+    "hk",
+    "food",
+    "hongkong",
+    "早餐",
+    "菠萝油 + 热奶茶"
+  ],
+
+  [
+    "starferry",
+    "天星小轮",
+    "hk",
+    "transport",
+    "hongkong",
+    "交通体验",
+    "尖沙咀 ↔ 中环"
+  ],
+
+  [
+    "hsbc",
+    "香港汇丰银行总部大楼",
+    "hk",
+    "architecture",
+    "hongkong",
+    "Foster + Partners · 1986",
+    "重点"
+  ],
+
+  [
+    "boc",
+    "香港中银大厦",
+    "hk",
+    "architecture",
+    "hongkong",
+    "I. M. Pei · 1989",
+    "重点"
+  ],
+
+  [
+    "henderson",
+    "The Henderson",
+    "hk",
+    "architecture",
+    "hongkong",
+    "Zaha Hadid Architects",
+    "2 Murray Road"
+  ],
+
+  [
+    "hkpark",
+    "香港公园",
+    "hk",
+    "city",
+    "hongkong",
+    "城市景观",
+    "高楼 + 植物 + 水景"
+  ],
+
+  [
+    "murray",
+    "The Murray",
+    "hk",
+    "architecture",
+    "hongkong",
+    "Foster + Partners · 2018",
+    "改造项目"
+  ],
+
+  [
+    "gardenbridge",
+    "花园道 / 中银对面天桥摄影机位",
+    "hk",
+    "photo",
+    "hongkong",
+    "中环机位",
+    "拍中银 / The Henderson 城市关系"
+  ],
+
+  [
+    "centralj2",
+    "中环站 J2 出口天桥",
+    "hk",
+    "photo",
+    "hongkong",
+    "中环机位",
+    "保留"
+  ],
+
+  [
+    "k11m",
+    "K11 MUSEA",
+    "hk",
+    "architecture",
+    "hongkong",
+    "尖沙咀",
+    "傍晚路线"
+  ],
+
+  [
+    "victoria",
+    "维多利亚港 / 星光大道",
+    "hk",
+    "photo",
+    "hongkong",
+    "蓝调 / 夜景",
+    "傍晚重点"
+  ],
+
+  [
+    "harbourcity",
+    "海港城 / Ocean Terminal Deck",
+    "hk",
+    "city",
+    "hongkong",
+    "维港",
+    "按体力选择"
+  ],
+
+  [
+    "apple",
+    "Apple Store",
+    "hk",
+    "city",
+    "hongkong",
+    "购物节点",
+    "如购买 AirPods 放在中环路线"
+  ],
+
+  [
+    "palace",
+    "香港故宫文化博物馆",
+    "optional",
+    "architecture",
+    "hongkong",
+    "可选",
+    "香港一日时间有限"
+  ],
+
+  [
+    "kowloonpark",
+    "九龙公园",
+    "optional",
+    "city",
+    "hongkong",
+    "可选",
+    "有余量再去"
+  ]
+].map(([id, name, route, type, city, meta, note]) => ({
+  id,
+  name,
+  route,
+  type,
+  city,
+  meta,
+  note
+}));
 
 
-  /* FUTIAN */
+/* ==========================================================
+   LOCAL STORAGE
+========================================================== */
 
-  {
-    name: "深圳市民中心",
-    city: "shenzhen",
-    day: "futian",
-    type: "architecture",
-    icon: "🏛️",
-    detail: "福田 CBD 城市轴线",
-    tags: ["10/5", "福田"],
-    mapQuery: "深圳市民中心"
-  },
+let activeRoute = "all";
+let activeType = "all";
 
-  {
-    name: "深圳市当代艺术与城市规划馆",
-    city: "shenzhen",
-    day: "futian",
-    type: "architecture",
-    icon: "🏛️",
-    detail: "两馆 · 福田建筑线",
-    tags: ["两馆"],
-    mapQuery: "深圳市当代艺术与城市规划馆"
-  },
+let checks = JSON.parse(
+  localStorage.getItem(STORAGE.checks) || "{}"
+);
 
-  {
-    name: "莲花山公园",
-    city: "shenzhen",
-    day: "futian",
-    type: "city",
-    icon: "🌳",
-    detail: "俯瞰福田 CBD 天际线",
-    tags: ["天际线", "摄影"],
-    mapQuery: "莲花山公园 深圳"
-  },
+const defaultTodos = [
+  "临近出发比较 10/3–10/6 香港天气，确认是否保留 10/4",
+  "购买 / 兑换福田 ↔ 香港西九龙高铁票",
+  "确认香港返程最晚可接受高铁班次",
+  "确认深圳湾文化广场 10 月展览与开放安排",
+  "确认深圳自然博物馆是否加入主线",
+  "检查 Pocket 4、iPhone、充电宝与充电线",
+  "确认 10/6 小炳胜是否需要预约"
+];
 
-  {
-    name: "平安金融中心",
-    city: "shenzhen",
-    day: "futian",
-    type: "architecture",
-    icon: "🏙️",
-    detail: "福田 CBD 城市空间",
-    tags: ["CBD"],
-    mapQuery: "平安金融中心 深圳"
-  },
+let todos;
 
-  {
-    name: "华强北步行街",
-    city: "shenzhen",
-    day: "futian",
-    type: "city",
-    icon: "💡",
-    detail: "电子产业 / LED / 元件 / 城市摄影",
-    tags: ["华强北", "城市摄影"],
-    mapQuery: "华强北步行街 深圳"
-  },
+try {
+  todos =
+    JSON.parse(
+      localStorage.getItem(STORAGE.todos) || "null"
+    ) ||
+    defaultTodos.map((text, i) => ({
+      id: "d" + i,
+      text,
+      done: false
+    }));
+} catch {
+  todos = defaultTodos.map((text, i) => ({
+    id: "d" + i,
+    text,
+    done: false
+  }));
+}
 
-  {
-    name: "赛格广场",
-    city: "shenzhen",
-    day: "futian",
-    type: "architecture",
-    icon: "🏢",
-    detail: "华强北城市地标",
-    tags: ["SEG"],
-    mapQuery: "赛格广场 深圳"
-  },
+function saveTodos() {
+  localStorage.setItem(
+    STORAGE.todos,
+    JSON.stringify(todos)
+  );
+}
 
-  {
-    name: "蘩楼 · 华强北总店",
-    city: "shenzhen",
-    day: "futian",
-    type: "food",
-    icon: "🍜",
-    detail: "华强北路线餐厅",
-    tags: ["必吃"],
-    mapQuery: "蘩楼 华强北总店 深圳"
-  },
-
-  {
-    name: "肥韬茶餐厅 · 深圳总店",
-    city: "shenzhen",
-    day: "futian",
-    type: "food",
-    icon: "🍜",
-    detail: "华强北区域 · 与蘩楼根据餐次安排",
-    tags: ["必吃"],
-    mapQuery: "肥韬茶餐厅 深圳总店"
-  },
+function saveChecks() {
+  localStorage.setItem(
+    STORAGE.checks,
+    JSON.stringify(checks)
+  );
+}
 
 
-  /* NANSHAN */
+/* ==========================================================
+   MAP
+========================================================== */
 
-  {
-    name: "K11 ECOAST",
-    city: "shenzhen",
-    day: "nanshan",
-    type: "architecture",
-    icon: "🏛️",
-    detail: "蛇口 / 太子湾 · 建筑与滨水商业空间",
-    tags: ["10/6", "必去"],
-    mapQuery: "K11 ECOAST 深圳"
-  },
+function mapUrl(place, web = false) {
 
-  {
-    name: "太子湾",
-    city: "shenzhen",
-    day: "nanshan",
-    type: "city",
-    icon: "🌊",
-    detail: "蛇口滨海城市空间",
-    tags: ["滨水"],
-    mapQuery: "太子湾 深圳"
-  },
+  const query =
+    encodeURIComponent(place.name);
 
-  {
-    name: "海上世界",
-    city: "shenzhen",
-    day: "nanshan",
-    type: "city",
-    icon: "🌊",
-    detail: "蛇口滨水空间",
-    tags: ["蛇口"],
-    mapQuery: "海上世界 深圳"
-  },
+  if (place.city === "hongkong") {
 
-  {
-    name: "万象天地",
-    city: "shenzhen",
-    day: "nanshan",
-    type: "architecture",
-    icon: "🏙️",
-    detail: "商业建筑与城市公共空间",
-    tags: ["南山"],
-    mapQuery: "深圳万象天地"
-  },
+    return (
+      "https://www.google.com/maps/search/" +
+      "?api=1&query=" +
+      query
+    );
 
-  {
-    name: "BEGL",
-    city: "shenzhen",
-    day: "nanshan",
-    type: "food",
-    icon: "🥯",
-    detail: "目前优先考虑万象天地店",
-    tags: ["万象天地"],
-    mapQuery: "BEGL 万象天地 深圳"
-  },
-
-
-  /* HONG KONG */
-
-  {
-    name: "香港西九龙站",
-    city: "hongkong",
-    day: "hk",
-    type: "architecture",
-    icon: "🚄",
-    detail: "Aedas · 香港抵达建筑",
-    tags: ["Aedas", "交通"],
-    mapQuery: "Hong Kong West Kowloon Station"
-  },
-
-  {
-    name: "K11 MUSEA",
-    city: "hongkong",
-    day: "hk",
-    type: "architecture",
-    icon: "🏛️",
-    detail: "尖沙咀 · 维港建筑节点",
-    tags: ["尖沙咀"],
-    mapQuery: "K11 MUSEA Hong Kong"
-  },
-
-  {
-    name: "香港汇丰银行总部",
-    city: "hongkong",
-    day: "hk",
-    type: "architecture",
-    icon: "🏛️",
-    detail: "Foster + Partners · 1986",
-    tags: ["Foster", "必看"],
-    mapQuery: "HSBC Main Building Hong Kong"
-  },
-
-  {
-    name: "香港中银大厦",
-    city: "hongkong",
-    day: "hk",
-    type: "architecture",
-    icon: "🏛️",
-    detail: "I. M. Pei · 1989",
-    tags: ["I. M. Pei", "必看"],
-    mapQuery: "Bank of China Tower Hong Kong"
-  },
-
-  {
-    name: "The Henderson",
-    city: "hongkong",
-    day: "hk",
-    type: "architecture",
-    icon: "🏛️",
-    detail: "Zaha Hadid Architects · 中环摄影重点",
-    tags: ["Zaha Hadid", "必看"],
-    mapQuery: "The Henderson 2 Murray Road Hong Kong"
-  },
-
-  {
-    name: "The Henderson 天桥机位",
-    city: "hongkong",
-    day: "hk",
-    type: "photo",
-    icon: "📸",
-    detail: "The Henderson / 中银周边高位城市构图",
-    tags: ["必拍", "中环"],
-    mapQuery: "The Henderson 2 Murray Road Hong Kong",
-
-    photoNote:
-      "📱 现场观察 The Henderson 与中银大厦的叠景关系，再决定 1× / 2× 构图。"
-  },
-
-  {
-    name: "香港公园",
-    city: "hongkong",
-    day: "hk",
-    type: "city",
-    icon: "🌳",
-    detail: "瀑布 + 植物 + 摩天楼",
-    tags: ["景观", "中环"],
-    mapQuery: "Hong Kong Park"
-  },
-
-  {
-    name: "The Murray",
-    city: "hongkong",
-    day: "hk",
-    type: "architecture",
-    icon: "🏛️",
-    detail: "Foster + Partners · 2018",
-    tags: ["Foster"],
-    mapQuery: "The Murray Hong Kong"
-  },
-
-  {
-    name: "天星小轮",
-    city: "hongkong",
-    day: "hk",
-    type: "city",
-    icon: "⛴️",
-    detail: "尖沙咀 ↔ 中环 · 交通与摄影节点",
-    tags: ["维港", "必坐"],
-    mapQuery: "Star Ferry Pier Tsim Sha Tsui Hong Kong"
-  },
-
-  {
-    name: "维多利亚港",
-    city: "hongkong",
-    day: "hk",
-    type: "photo",
-    icon: "📸",
-    detail: "香港蓝调与夜景主线",
-    tags: ["夜景", "蓝调"],
-    mapQuery: "Victoria Harbour Hong Kong"
-  },
-
-  {
-    name: "龙城冰室",
-    city: "hongkong",
-    day: "hk",
-    type: "food",
-    icon: "🍍",
-    detail: "香港早餐 · 菠萝油 + 热奶茶",
-    tags: ["早餐"],
-    mapQuery: "龙城冰室 尖沙咀 香港"
-  },
-
-
-  /* OPTIONAL */
-
-  {
-    name: "深圳自然博物馆",
-    city: "shenzhen",
-    day: "optional",
-    type: "architecture",
-    icon: "🟡",
-    detail: "坪山 · 距离南山 / 福田主线路较远",
-    tags: ["OPTIONAL", "坪山"],
-    mapQuery: "深圳自然博物馆"
-  },
-
-  {
-    name: "深业上城 UpperHills",
-    city: "shenzhen",
-    day: "optional",
-    type: "architecture",
-    icon: "🟡",
-    detail: "福田 · 有体力再加入",
-    tags: ["OPTIONAL"],
-    mapQuery: "深业上城 深圳"
-  },
-
-  {
-    name: "香港故宫文化博物馆",
-    city: "hongkong",
-    day: "optional",
-    type: "architecture",
-    icon: "🟡",
-    detail: "西九龙 · 时间允许再进入",
-    tags: ["OPTIONAL"],
-    mapQuery: "Hong Kong Palace Museum"
   }
 
-];
+  if (web) {
+
+    return (
+      "https://api.map.baidu.com/place/search" +
+      "?query=" +
+      query +
+      "&region=" +
+      encodeURIComponent("深圳") +
+      "&output=html" +
+      "&src=SZHKTrip2026"
+    );
+
+  }
+
+  return (
+    "baidumap://map/place/search" +
+    "?query=" +
+    query +
+    "&region=" +
+    encodeURIComponent("深圳") +
+    "&src=SZHKTrip2026"
+  );
+}
 
 
-/* ==========================================================
-   TODO DATABASE
-========================================================== */
+function openMap(id) {
 
-const todos = [
+  const place =
+    places.find(x => x.id === id);
 
-  "确认香港天气，决定香港最终日期",
-
-  "兑换 / 购买福田 → 香港西九龙高铁票",
-
-  "确认香港故宫是否进入最终路线",
-
-  "确认 Apple Store AirPods 购买计划",
-
-  "检查 DJI Pocket 4 电池 / 存储卡",
-
-  "准备充电宝与充电线",
-
-  "确认深圳自然博物馆是否保留",
-
-  "最终核对所有建筑开放 / 建设状态",
-
-  "最终核对餐厅营业时间"
-
-];
+  if (!place) return;
 
 
-/* ==========================================================
-   MAIN TABS
-========================================================== */
+  if (place.city === "hongkong") {
 
-const tabs =
-  document.querySelectorAll(".tab");
+    location.href =
+      mapUrl(place);
 
-const panels =
-  document.querySelectorAll(".tab-panel");
+    return;
+
+  }
 
 
-tabs.forEach(tab => {
+  const fallback =
+    mapUrl(place, true);
 
-  tab.addEventListener("click", () => {
+  const app =
+    mapUrl(place, false);
 
-    tabs.forEach(item => {
-      item.classList.remove("active");
-    });
 
-    panels.forEach(panel => {
-      panel.classList.remove("active");
-    });
+  let hidden = false;
 
-    tab.classList.add("active");
 
-    const target =
-      document.getElementById(
-        tab.dataset.tab
-      );
+  const markHidden = () => {
 
-    if (target) {
-      target.classList.add("active");
+    hidden =
+      document.hidden;
+
+  };
+
+
+  document.addEventListener(
+    "visibilitychange",
+    markHidden,
+    { once: true }
+  );
+
+
+  location.href =
+    app;
+
+
+  setTimeout(() => {
+
+    if (
+      !hidden &&
+      !document.hidden
+    ) {
+
+      location.href =
+        fallback;
+
     }
 
-  });
+  }, 1200);
 
-});
+}
+
+window.openMap =
+  openMap;
 
 
 /* ==========================================================
    OVERVIEW
 ========================================================== */
 
-const overviewDays =
-  document.getElementById("overviewDays");
+function renderOverview() {
+
+  const today =
+    new Intl.DateTimeFormat(
+      "en-CA",
+      {
+        timeZone: "Asia/Shanghai",
+        month: "2-digit",
+        day: "2-digit"
+      }
+    )
+      .format(new Date())
+      .replace("-", "/");
 
 
-if (overviewDays) {
+  document.getElementById(
+    "overviewDays"
+  ).innerHTML =
 
-  days.forEach(day => {
+    tripDays.map(day => `
 
-    const card =
-      document.createElement("article");
+      <article class="day-card ${
+        day.date === today
+          ? "today"
+          : ""
+      }">
 
-    card.className =
-      "day-overview";
+        <div class="day-num">
 
-    card.innerHTML = `
+          <strong>
+            ${day.date.split("/")[1]}
+          </strong>
 
-      <div class="day-number">
+          <span>OCT</span>
 
-        <strong>
-          ${day.date.slice(3)}
-        </strong>
+        </div>
 
-        <span>
-          OCT
-        </span>
+        <div>
 
-      </div>
+          <span class="section-label">
+            ${day.day}
+          </span>
 
-      <div>
+          <h3>
+            ${day.title}
+          </h3>
 
-        <h3>
-          ${day.title}
-        </h3>
+          <p>
+            ${day.theme}
+          </p>
 
-        <p>
-          ${day.summary}
-        </p>
+        </div>
 
-      </div>
+      </article>
 
-    `;
-
-    overviewDays.appendChild(card);
-
-  });
+    `).join("");
 
 }
+
+
+/* ==========================================================
+   PLACES
+========================================================== */
+
+function renderPlaces() {
+
+  const list =
+    places.filter(place =>
+
+      (
+        activeRoute === "all" ||
+        place.route === activeRoute
+      )
+
+      &&
+
+      (
+        activeType === "all" ||
+        place.type === activeType
+      )
+
+    );
+
+
+  document.getElementById(
+    "placesList"
+  ).innerHTML =
+
+    list.length
+
+      ? list.map(place => `
+
+        <article class="place-card">
+
+          <div class="place-top">
+
+            <div>
+
+              <div class="place-meta">
+
+                ${place.type.toUpperCase()}
+                ·
+                ${place.meta}
+
+              </div>
+
+              <h3>
+                ${esc(place.name)}
+              </h3>
+
+              <p>
+                ${esc(place.note)}
+              </p>
+
+            </div>
+
+          </div>
+
+
+          <div class="place-actions">
+
+            <button
+              class="map-button"
+              onclick="openMap('${place.id}')"
+            >
+
+              ${
+                place.city === "hongkong"
+                  ? "Google Maps"
+                  : "百度地图 App"
+              }
+
+            </button>
+
+
+            ${
+              place.city === "shenzhen"
+
+                ? `
+
+                <a
+                  class="action"
+                  href="${mapUrl(place, true)}"
+                  target="_blank"
+                  rel="noopener"
+                >
+                  网页版
+                </a>
+
+                `
+
+                : ""
+            }
+
+
+            <button
+              class="action ${
+                checks[place.id]
+                  ? "done"
+                  : ""
+              }"
+              onclick="toggleCheck('${place.id}')"
+            >
+
+              ${
+                checks[place.id]
+                  ? "✓ 已打卡"
+                  : "○ 打卡"
+              }
+
+            </button>
+
+          </div>
+
+        </article>
+
+      `).join("")
+
+      : `
+
+        <div class="empty-card">
+          这个筛选组合暂时没有地点。
+        </div>
+
+      `;
+
+}
+
+
+window.toggleCheck =
+  id => {
+
+    checks[id] =
+      !checks[id];
+
+    saveChecks();
+
+    renderPlaces();
+
+  };
 
 
 /* ==========================================================
    DAILY PLAN
 ========================================================== */
 
-const dailyPlans =
-  document.getElementById("dailyPlans");
+function renderDaily() {
 
+  document.getElementById(
+    "dailyPlans"
+  ).innerHTML =
 
-if (dailyPlans) {
+    tripDays.map(day => `
 
-  days.forEach(day => {
+      <article class="daily-card">
 
-    const card =
-      document.createElement("article");
+        <div class="daily-head">
 
-    card.className =
-      "day-card";
+          <div class="day-num">
 
+            <strong>
+              ${day.date.split("/")[1]}
+            </strong>
 
-    const timelineHTML =
-      day.timeline
-        .map(item => {
+            <span>OCT</span>
 
-          let navigation = "";
-
-
-          if (item.city) {
-
-            const mapLabel =
-              item.city === "hongkong"
-                ? "Google Maps →"
-                : "百度地图 →";
-
-
-            navigation = `
-
-              <a
-                class="timeline-nav"
-                href="${getMapUrl(item)}"
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                📍 ${mapLabel}
-              </a>
-
-            `;
-
-          }
-
-
-          return `
-
-            <div class="timeline-item">
-
-              <div class="timeline-time">
-                ${item.time}
-              </div>
-
-              <div class="timeline-content">
-
-                <strong>
-                  ${item.title}
-                </strong>
-
-                <p>
-                  ${item.detail}
-                </p>
-
-                ${navigation}
-
-              </div>
-
-            </div>
-
-          `;
-
-        })
-        .join("");
-
-
-    card.innerHTML = `
-
-      <header class="day-card-header">
-
-        <div class="day-date">
-          ${day.day} · ${day.date}
-        </div>
-
-        <h2>
-          ${day.title}
-        </h2>
-
-        <div class="day-route">
-          ${day.route}
-        </div>
-
-      </header>
-
-      <div class="timeline">
-        ${timelineHTML}
-      </div>
-
-    `;
-
-
-    dailyPlans.appendChild(card);
-
-  });
-
-}
-
-
-/* ==========================================================
-   PLACE FILTER
-========================================================== */
-
-let currentDay = "all";
-let currentType = "all";
-
-const placesList =
-  document.getElementById("placesList");
-
-
-function getTypeLabel(type) {
-
-  const labels = {
-    architecture: "建筑",
-    city: "城市 / 景观",
-    food: "吃饭",
-    photo: "摄影机位"
-  };
-
-  return labels[type] || "";
-
-}
-
-
-/* ==========================================================
-   RENDER PLACES
-========================================================== */
-
-function renderPlaces() {
-
-  if (!placesList) {
-    return;
-  }
-
-  placesList.innerHTML = "";
-
-
-  const filtered =
-    places.filter(place => {
-
-      const dayMatch =
-        currentDay === "all" ||
-        place.day === currentDay;
-
-      const typeMatch =
-        currentType === "all" ||
-        place.type === currentType;
-
-      return dayMatch && typeMatch;
-
-    });
-
-
-  filtered.forEach(place => {
-
-    const card =
-      document.createElement("article");
-
-    card.className =
-      "place-card";
-
-
-    if (place.type === "photo") {
-      card.classList.add("photo-special");
-    }
-
-
-    const tags =
-      (place.tags || [])
-        .map(tag => `
-          <span class="meta-pill">
-            ${tag}
-          </span>
-        `)
-        .join("");
-
-
-    const photoNote =
-      place.photoNote
-        ? `
-          <div class="photo-note">
-            ${place.photoNote}
-          </div>
-        `
-        : "";
-
-
-    const mapLabel =
-      place.city === "hongkong"
-        ? "Google Maps 导航"
-        : "百度地图导航";
-
-
-    card.innerHTML = `
-
-      <div class="place-top">
-
-        <div class="place-name">
-
-          <div class="place-icon">
-            ${place.icon}
           </div>
 
           <div>
 
+            <span class="section-label">
+              ${day.day}
+            </span>
+
             <h3>
-              ${place.name}
+              ${day.title}
             </h3>
 
             <p>
-              ${place.detail}
+              ${day.theme}
             </p>
 
           </div>
 
         </div>
 
-        <span class="place-type">
-          ${getTypeLabel(place.type)}
-        </span>
 
-      </div>
+        <div class="timeline">
 
+          ${day.events.map(event => `
 
-      <div class="place-meta">
-        ${tags}
-      </div>
+            <div class="timeline-item">
 
+              <div class="timeline-time">
+                ${event[0]}
+              </div>
 
-      ${photoNote}
+              <div class="timeline-title">
+                ${esc(event[1])}
+              </div>
 
-
-      <div class="place-actions">
-
-        <a
-          class="map-button"
-          href="${getMapUrl(place)}"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          📍 ${mapLabel}
-        </a>
-
-        <button
-          class="check-button"
-          type="button"
-        >
-          ✓ 打卡
-        </button>
-
-      </div>
-
-    `;
+              <div class="timeline-note">
+                ${esc(event[2])}
+              </div>
 
 
-    placesList.appendChild(card);
+              ${
+                event[4]
 
-  });
+                  ? `
 
+                    <a
+                      class="timeline-nav"
+                      href="${
+                        event[3] === "transport" &&
+                        event[4].includes("青岛")
 
-  if (filtered.length === 0) {
+                          ? "https://map.baidu.com/search/" +
+                            encodeURIComponent(event[4])
 
-    placesList.innerHTML = `
-      <div class="mini-card">
-        <p>
-          当前筛选条件下暂时没有地点。
-        </p>
-      </div>
-    `;
+                          : day.date === "10/04"
 
-  }
+                          ? "https://www.google.com/maps/search/?api=1&query=" +
+                            encodeURIComponent(event[4])
 
-}
+                          : "https://api.map.baidu.com/place/search?query=" +
+                            encodeURIComponent(event[4]) +
+                            "&region=" +
+                            encodeURIComponent("深圳") +
+                            "&output=html&src=SZHKTrip2026"
+                      }"
+                      target="_blank"
+                      rel="noopener"
+                    >
 
+                      导航 ↗
 
-/* ==========================================================
-   DAY FILTER BUTTONS
-========================================================== */
+                    </a>
 
-document
-  .querySelectorAll(".day-filter")
-  .forEach(button => {
+                  `
 
-    button.addEventListener(
-      "click",
-      () => {
+                  : ""
+              }
 
-        document
-          .querySelectorAll(".day-filter")
-          .forEach(item => {
-            item.classList.remove("active");
-          });
+            </div>
 
-        button.classList.add("active");
+          `).join("")}
 
-        currentDay =
-          button.dataset.day;
+        </div>
 
-        renderPlaces();
+      </article>
 
-      }
-    );
-
-  });
-
-
-/* ==========================================================
-   TYPE FILTER BUTTONS
-========================================================== */
-
-document
-  .querySelectorAll(".filter")
-  .forEach(button => {
-
-    button.addEventListener(
-      "click",
-      () => {
-
-        document
-          .querySelectorAll(".filter")
-          .forEach(item => {
-            item.classList.remove("active");
-          });
-
-        button.classList.add("active");
-
-        currentType =
-          button.dataset.filter;
-
-        renderPlaces();
-
-      }
-    );
-
-  });
-
-
-/* ==========================================================
-   PLACE CHECK-IN
-========================================================== */
-
-if (placesList) {
-
-  placesList.addEventListener(
-    "click",
-    event => {
-
-      const button =
-        event.target.closest(".check-button");
-
-
-      if (!button) {
-        return;
-      }
-
-
-      button.classList.toggle("done");
-
-
-      const card =
-        button.closest(".place-card");
-
-
-      const isDone =
-        button.classList.contains("done");
-
-
-      if (card) {
-
-        card.classList.toggle(
-          "completed",
-          isDone
-        );
-
-      }
-
-
-      button.textContent =
-        isDone
-          ? "✓ 已打卡"
-          : "✓ 打卡";
-
-    }
-  );
+    `).join("");
 
 }
 
 
 /* ==========================================================
-   TODO LIST
+   TODO
 ========================================================== */
 
-const todoList =
-  document.getElementById("todoList");
+function renderTodos() {
 
+  document.getElementById(
+    "todoList"
+  ).innerHTML =
 
-if (todoList) {
+    todos.length
 
-  todos.forEach(
-    (text, index) => {
+      ? todos.map(todo => `
 
-      const label =
-        document.createElement("label");
-
-      label.className =
-        "todo";
-
-      label.innerHTML = `
-
-        <input
-          type="checkbox"
-          data-index="${index}"
+        <div
+          class="todo-item ${
+            todo.done
+              ? "done"
+              : ""
+          }"
         >
 
-        <span>
-          ${text}
-        </span>
+          <button
+            class="todo-check"
+            onclick="toggleTodo('${todo.id}')"
+          >
+
+            ${
+              todo.done
+                ? "✓"
+                : ""
+            }
+
+          </button>
+
+
+          <div class="todo-text">
+            ${esc(todo.text)}
+          </div>
+
+
+          <button
+            class="todo-delete"
+            onclick="deleteTodo('${todo.id}')"
+            aria-label="删除"
+          >
+            ×
+          </button>
+
+        </div>
+
+      `).join("")
+
+      : `
+
+        <div class="empty-card">
+          现在没有待办。随时在上面新增。
+        </div>
 
       `;
 
-      todoList.appendChild(label);
+}
 
+
+window.toggleTodo =
+  id => {
+
+    const todo =
+      todos.find(x => x.id === id);
+
+    if (todo) {
+      todo.done =
+        !todo.done;
     }
-  );
+
+    saveTodos();
+
+    renderTodos();
+
+  };
 
 
-  todoList.addEventListener(
-    "change",
-    event => {
+window.deleteTodo =
+  id => {
 
-      if (
-        event.target.type === "checkbox"
-      ) {
+    todos =
+      todos.filter(x => x.id !== id);
 
-        const row =
-          event.target.closest(".todo");
+    saveTodos();
 
-        if (row) {
+    renderTodos();
 
-          row.classList.toggle(
-            "done",
-            event.target.checked
-          );
+  };
 
-        }
 
-      }
+/* ==========================================================
+   LIVE NOW
+========================================================== */
 
-    }
+function eventTimestamp(
+  date,
+  time
+) {
+
+  const [month, day] =
+    date
+      .split("/")
+      .map(Number);
+
+  const [hour, minute] =
+    time
+      .split(":")
+      .map(Number);
+
+
+  /*
+    深圳 / 香港 = UTC+8
+
+    Date.UTC 使用 UTC，
+    所以当地小时减 8。
+  */
+
+  return Date.UTC(
+    2026,
+    month - 1,
+    day,
+    hour - 8,
+    minute,
+    0
   );
 
 }
 
 
-/* ==========================================================
-   LIVE NOW COUNTDOWN
-========================================================== */
+const allEvents =
 
-/*
-   这里是 V2.2 的核心变化：
+  tripDays
+    .flatMap(day =>
 
-   1. new Date() = 每次都读取当前设备时间
-   2. 页面打开时立即重新计算
-   3. 每秒重新计算一次
-   4. 旅行前 → 倒计时到 CZ5844
-   5. 旅行中 → 自动寻找下一行程节点
-   6. 旅行结束 → 显示旅行完成
-
-   行程节点使用中国/香港 UTC+8 时间。
-*/
-
-
-function buildTripEvents() {
-
-  const events = [];
-
-
-  days.forEach(day => {
-
-    const [month, date] =
-      day.date
-        .split("/")
-        .map(Number);
-
-
-    day.timeline.forEach(item => {
-
-      if (!item.time) {
-        return;
-      }
-
-
-      const [hour, minute] =
-        item.time
-          .split(":")
-          .map(Number);
-
-
-      /*
-        深圳 / 香港都使用 UTC+8。
-
-        Date.UTC(...) - 8小时
-        得到对应的绝对 UTC 时间。
-
-        这样即使用户手机临时切换到其他时区，
-        倒计时仍然指向真实的深圳/香港行程时间。
-      */
-
-      const timestamp =
-        Date.UTC(
-          TRIP_YEAR,
-          month - 1,
-          date,
-          hour - 8,
-          minute,
-          0
-        );
-
-
-      events.push({
-
-        timestamp,
-
-        title: item.title,
-
-        detail: item.detail,
+      day.events.map(event => ({
 
         date: day.date,
 
-        time: item.time
+        time: event[0],
 
-      });
+        title: event[1],
+
+        detail: event[2],
+
+        ts: eventTimestamp(
+          day.date,
+          event[0]
+        )
+
+      }))
+
+    )
+    .sort(
+      (a, b) =>
+        a.ts - b.ts
+    );
+
+
+function updateNow() {
+
+  /*
+    每一秒重新读取设备当前时间。
+
+    所以：
+    - 刷新网页重新计算
+    - 关闭再打开重新计算
+    - 不依赖上一次打开页面的时间
+  */
+
+  const now =
+    Date.now();
+
+  const next =
+    allEvents.find(
+      event =>
+        event.ts > now
+    );
+
+  const first =
+    allEvents[0];
+
+
+  const ids = [
+    "countdownDays",
+    "countdownHours",
+    "countdownMinutes",
+    "countdownSeconds"
+  ];
+
+
+  if (!next) {
+
+    document.getElementById(
+      "nextTitle"
+    ).textContent =
+      "旅行完成";
+
+
+    document.getElementById(
+      "nextDetail"
+    ).textContent =
+      "深圳 × 香港 · 2026";
+
+
+    ids.forEach(id => {
+
+      document.getElementById(
+        id
+      ).textContent =
+        "00";
 
     });
+
+
+    document.getElementById(
+      "countdownCaption"
+    ).textContent =
+      "旅程完成";
+
+
+    return;
+
+  }
+
+
+  const diff =
+    Math.max(
+      0,
+      next.ts - now
+    );
+
+
+  const days =
+    Math.floor(
+      diff / 86400000
+    );
+
+
+  const hours =
+    Math.floor(
+      diff % 86400000 /
+      3600000
+    );
+
+
+  const minutes =
+    Math.floor(
+      diff % 3600000 /
+      60000
+    );
+
+
+  const seconds =
+    Math.floor(
+      diff % 60000 /
+      1000
+    );
+
+
+  [
+    days,
+    hours,
+    minutes,
+    seconds
+  ].forEach(
+    (value, index) => {
+
+      document.getElementById(
+        ids[index]
+      ).textContent =
+        pad(value);
+
+    }
+  );
+
+
+  document.getElementById(
+    "nextTitle"
+  ).textContent =
+    next.title;
+
+
+  document.getElementById(
+    "nextDetail"
+  ).textContent =
+    `${next.date} ${next.time} · ${next.detail}`;
+
+
+  document.getElementById(
+    "nextDateDay"
+  ).textContent =
+    next.date.split("/")[1];
+
+
+  document.getElementById(
+    "nextDateMonth"
+  ).textContent =
+    "OCT";
+
+
+  document.getElementById(
+    "countdownCaption"
+  ).textContent =
+
+    now < first.ts
+      ? "距离旅程开始"
+      : "距离下一行程";
+
+}
+
+
+/* ==========================================================
+   TAB INTERACTION
+========================================================== */
+
+document
+  .querySelectorAll(".tab")
+  .forEach(button => {
+
+    button.addEventListener(
+      "click",
+      () => {
+
+        document
+          .querySelectorAll(
+            ".tab, .tab-panel"
+          )
+          .forEach(element => {
+
+            element.classList.remove(
+              "active"
+            );
+
+          });
+
+
+        button.classList.add(
+          "active"
+        );
+
+
+        document
+          .getElementById(
+            button.dataset.tab
+          )
+          .classList.add(
+            "active"
+          );
+
+
+        window.scrollTo({
+
+          top:
+            document
+              .querySelector(
+                ".tabs"
+              )
+              .offsetTop - 8,
+
+          behavior:
+            "smooth"
+
+        });
+
+      }
+    );
 
   });
 
 
-  events.sort(
-    (a, b) =>
-      a.timestamp - b.timestamp
-  );
+/* ==========================================================
+   ROUTE AXIS
+========================================================== */
+
+document
+  .querySelectorAll(
+    ".axis-node"
+  )
+  .forEach(button => {
+
+    button.addEventListener(
+      "click",
+      () => {
+
+        activeRoute =
+          button.dataset.route;
 
 
-  return events;
+        document
+          .querySelectorAll(
+            ".axis-node"
+          )
+          .forEach(node => {
 
-}
+            node.classList.toggle(
+              "active",
+              node === button
+            );
+
+          });
 
 
-const tripEvents =
-  buildTripEvents();
+        renderPlaces();
 
+      }
+    );
 
-function findNextEvent(nowTimestamp) {
-
-  return (
-    tripEvents.find(
-      event =>
-        event.timestamp >
-        nowTimestamp
-    ) || null
-  );
-
-}
+  });
 
 
 /* ==========================================================
-   COUNTDOWN DISPLAY
+   PLACE TYPE FILTER
 ========================================================== */
 
-function setCountdownNumbers(
-  daysValue,
-  hoursValue,
-  minutesValue,
-  secondsValue
-) {
+document
+  .querySelectorAll(
+    ".filter"
+  )
+  .forEach(button => {
 
-  const daysElement =
-    document.getElementById("days");
+    button.addEventListener(
+      "click",
+      () => {
 
-  const hoursElement =
-    document.getElementById("hours");
-
-  const minutesElement =
-    document.getElementById("minutes");
-
-  const secondsElement =
-    document.getElementById("seconds");
+        activeType =
+          button.dataset.filter;
 
 
-  if (daysElement) {
-    daysElement.textContent =
-      String(daysValue)
-        .padStart(2, "0");
-  }
+        document
+          .querySelectorAll(
+            ".filter"
+          )
+          .forEach(filter => {
 
-  if (hoursElement) {
-    hoursElement.textContent =
-      String(hoursValue)
-        .padStart(2, "0");
-  }
+            filter.classList.toggle(
+              "active",
+              filter === button
+            );
 
-  if (minutesElement) {
-    minutesElement.textContent =
-      String(minutesValue)
-        .padStart(2, "0");
-  }
+          });
 
-  if (secondsElement) {
-    secondsElement.textContent =
-      String(secondsValue)
-        .padStart(2, "0");
-  }
 
-}
+        renderPlaces();
+
+      }
+    );
+
+  });
 
 
 /* ==========================================================
-   UPDATE NOW CARD
+   ADD TODO
 ========================================================== */
 
-function updateNowCard() {
+document
+  .getElementById(
+    "todoForm"
+  )
+  .addEventListener(
+    "submit",
+    event => {
 
-  /*
-    每次执行都会重新读取当前设备时间。
-  */
-
-  const now =
-    new Date();
-
-  const nowTimestamp =
-    now.getTime();
+      event.preventDefault();
 
 
-  const nextEvent =
-    findNextEvent(nowTimestamp);
+      const input =
+        document.getElementById(
+          "todoInput"
+        );
 
 
-  const titleElement =
-    document.getElementById("nextTitle");
-
-  const detailElement =
-    document.getElementById("nextDetail");
-
-  const captionElement =
-    document.querySelector(
-      ".countdown-caption"
-    );
+      const text =
+        input.value.trim();
 
 
-  /* -------------------------
-     TRIP FINISHED
-  ------------------------- */
+      if (!text) return;
 
-  if (!nextEvent) {
 
-    if (titleElement) {
-      titleElement.textContent =
-        "深圳 × 香港旅行完成";
+      todos.unshift({
+
+        id:
+          "u" + Date.now(),
+
+        text,
+
+        done:
+          false
+
+      });
+
+
+      input.value =
+        "";
+
+
+      saveTodos();
+
+      renderTodos();
+
+    }
+  );
+
+
+/* ==========================================================
+   CHANGELOG
+========================================================== */
+
+function mdToHtml(markdown) {
+
+  const lines =
+    markdown
+      .replace(/\r/g, "")
+      .split("\n");
+
+
+  let html =
+    "";
+
+
+  for (const raw of lines) {
+
+    const line =
+      raw.replace(/^\\/, "");
+
+
+    if (/^# /.test(line)) {
+
+      html +=
+        `<h1>${esc(
+          line.slice(2)
+        )}</h1>`;
+
     }
 
-    if (detailElement) {
-      detailElement.textContent =
-        "2026 · OCT";
+    else if (/^## /.test(line)) {
+
+      html +=
+        `<h2>${esc(
+          line.slice(3)
+        )}</h2>`;
+
     }
 
-    if (captionElement) {
-      captionElement.textContent =
-        "旅程已经结束";
+    else if (/^### /.test(line)) {
+
+      html +=
+        `<h3>${esc(
+          line.slice(4)
+        )}</h3>`;
+
     }
 
-    setCountdownNumbers(
-      0,
-      0,
-      0,
-      0
-    );
-
-    return;
-  }
-
-
-  /* -------------------------
-     NEXT EVENT
-  ------------------------- */
-
-  if (titleElement) {
-
-    titleElement.textContent =
-      nextEvent.title;
-
-  }
-
-
-  if (detailElement) {
-
-    detailElement.textContent =
-      `${nextEvent.date} · ${nextEvent.time} · ${nextEvent.detail}`;
-
-  }
-
-
-  const firstEvent =
-    tripEvents[0];
-
-
-  if (captionElement) {
-
-    if (
-      nowTimestamp <
-      firstEvent.timestamp
+    else if (
+      /^---+$/.test(line)
     ) {
 
-      captionElement.textContent =
-        "距离旅程开始";
+      html +=
+        "<hr>";
 
-    } else {
+    }
 
-      captionElement.textContent =
-        "距离下一行程";
+    else if (
+      /^- /.test(line)
+    ) {
+
+      html +=
+        `<p>• ${esc(
+          line.slice(2)
+        )}</p>`;
+
+    }
+
+    else if (
+      line.trim()
+    ) {
+
+      html +=
+        `<p>${esc(line)}</p>`;
 
     }
 
   }
 
 
-  /* -------------------------
-     CALCULATE DIFFERENCE
-  ------------------------- */
-
-  const difference =
-    Math.max(
-      0,
-      nextEvent.timestamp -
-      nowTimestamp
-    );
-
-
-  const daysLeft =
-    Math.floor(
-      difference /
-      (
-        1000 *
-        60 *
-        60 *
-        24
-      )
-    );
-
-
-  const hoursLeft =
-    Math.floor(
-      (
-        difference /
-        (
-          1000 *
-          60 *
-          60
-        )
-      ) % 24
-    );
-
-
-  const minutesLeft =
-    Math.floor(
-      (
-        difference /
-        (
-          1000 *
-          60
-        )
-      ) % 60
-    );
-
-
-  const secondsLeft =
-    Math.floor(
-      (
-        difference /
-        1000
-      ) % 60
-    );
-
-
-  setCountdownNumbers(
-    daysLeft,
-    hoursLeft,
-    minutesLeft,
-    secondsLeft
-  );
+  return html;
 
 }
 
 
+async function loadChangelog() {
+
+  const box =
+    document.getElementById(
+      "changelogContent"
+    );
+
+
+  box.textContent =
+    "正在读取 CHANGELOG.md…";
+
+
+  try {
+
+    const response =
+      await fetch(
+        "./CHANGELOG.md?v=" +
+        Date.now()
+      );
+
+
+    if (!response.ok) {
+      throw Error();
+    }
+
+
+    const markdown =
+      await response.text();
+
+
+    box.innerHTML =
+      mdToHtml(markdown);
+
+  }
+
+  catch {
+
+    box.innerHTML = `
+      <p>
+        暂时无法读取 CHANGELOG.md。
+        请确认它与 index.html 位于同一目录。
+      </p>
+    `;
+
+  }
+
+}
+
+
+const modal =
+  document.getElementById(
+    "changelogModal"
+  );
+
+
+document
+  .getElementById(
+    "openChangelog"
+  )
+  .addEventListener(
+    "click",
+    () => {
+
+      modal.hidden =
+        false;
+
+      loadChangelog();
+
+    }
+  );
+
+
+document
+  .getElementById(
+    "closeChangelog"
+  )
+  .addEventListener(
+    "click",
+    () => {
+
+      modal.hidden =
+        true;
+
+    }
+  );
+
+
+document
+  .querySelector(
+    "[data-close-changelog]"
+  )
+  .addEventListener(
+    "click",
+    () => {
+
+      modal.hidden =
+        true;
+
+    }
+  );
+
+
 /* ==========================================================
-   INITIALISE
+   START
 ========================================================== */
+
+renderOverview();
 
 renderPlaces();
 
+renderDaily();
 
-/*
-  打开网页的一瞬间：
-  立即读取本机当前时间。
-*/
+renderTodos();
 
-updateNowCard();
-
-
-/*
-  之后每秒重新读取当前时间并计算。
-*/
+updateNow();
 
 setInterval(
-  updateNowCard,
+  updateNow,
   1000
 );
